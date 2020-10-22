@@ -1,0 +1,12 @@
+[package]
+name = "portfolio-cli"
+version = "0.1.0"
+authors = ["jonac22 <jonathan.corallo.utn@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+web3 = "0.13.0"
+config = "0.10.1"
+tokio = { version = "0.2.22", features = ["macros"] }
