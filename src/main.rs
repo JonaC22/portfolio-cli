@@ -15,7 +15,7 @@ async fn main() -> web3::Result<()> {
 
     println!("Calling balance...");
     let balance = web3.eth().balance(address, None).await?.low_u64();
-    let eth_balance : f64 = balance as f64 / 10_u64.pow(17) as f64;
+    let eth_balance : f64 = balance as f64 / 10_u64.pow(18) as f64;
     println!("Balance of {:?}: {:.5} Ξ", address, eth_balance);
 
     Ok(())
