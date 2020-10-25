@@ -1,19 +1,33 @@
 use config;
 use std::env;
 use web3::types::H160;
+use serde_json as JSON;
+use jql;
+use serde_json::Value::Array;
 
-async fn list_ecr20_for_account(account_address : H160, etherscan_api_key : String) {
+async fn list_erc20_for_account(account_address : H160, etherscan_api_key : String) -> Vec<String> {
     let url = format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock=0&endblock=999999999&sort=asc&apikey={}", account_address, etherscan_api_key);
-    println!("{}", url);
-
     let body = reqwest::get(&url)
-    .await
-    .unwrap()
-    .text()
-    .await
-    .unwrap();
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap();
 
-    println!("body = {:#?}", body);
+    let json: JSON::Value = serde_json::from_str(&body).unwrap();
+    let mix_selector = Some(r#""result"|"tokenSymbol""#);
+
+    let results = jql::walker(&json, mix_selector).unwrap();
+
+    match results {
+        Array(value) => {
+            let mut v = value.into_iter().map(|value| value.to_string()).collect::<Vec<_>>();
+            v.sort();
+            v.dedup();
+            v
+        },
+        _ => panic!("Error processing list of ERC20 tokens")
+    }
 }
 
 #[tokio::main]
@@ -33,7 +47,12 @@ async fn main() -> web3::Result<()> {
     let eth_balance : f64 = balance as f64 / 10_u64.pow(18) as f64;
     println!("Balance of {:?}: {:.5} Ξ", address, eth_balance);
 
-    list_ecr20_for_account(address, settings.get::<String>("etherscan").unwrap()).await;
+    let list_erc20 : Vec<String> = list_erc20_for_account(address, settings.get::<String>("etherscan").unwrap()).await;
+
+    println!("List of ERC20 tokens:");
+    for token in list_erc20 {
+        println!("{}", token);
+    }
 
     Ok(())
 }
