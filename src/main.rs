@@ -13,9 +13,9 @@ async fn list_erc20_for_account(account_address : H160, etherscan_api_key : Stri
                 .text()
                 .await
                 .unwrap();
-
+    dbg!(&body);
     let json: JSON::Value = serde_json::from_str(&body).unwrap();
-    let mix_selector = Some(r#""result"|"tokenSymbol""#);
+    let mix_selector = Some(r#""result"|{"tokenSymbol", "contractAddress"}"#);
 
     let results = jql::walker(&json, mix_selector).unwrap();
 
@@ -26,7 +26,7 @@ async fn list_erc20_for_account(account_address : H160, etherscan_api_key : Stri
             v.dedup();
             v
         },
-        _ => panic!("Error processing list of ERC20 tokens")
+        _ => panic!("Error on processing the list of ERC20 tokens")
     }
 }
 
@@ -50,6 +50,7 @@ async fn main() -> web3::Result<()> {
     let list_erc20 : Vec<String> = list_erc20_for_account(address, settings.get::<String>("etherscan").unwrap()).await;
 
     println!("List of ERC20 tokens:");
+
     for token in list_erc20 {
         println!("{}", token);
     }
