@@ -19,7 +19,8 @@ async fn get_erc20_balance_for_account(account_address : H160, etherscan_api_key
 
     match results {
         Value::String(value) => {
-            value
+            let balance = value.parse::<f64>().unwrap() / 10_u64.pow(18) as f64;
+            balance.to_string()
         },
         _ => panic!("Error on processing ERC20 balance for {}", contract_address)
     }
@@ -83,7 +84,7 @@ async fn main() -> web3::Result<()> {
 
     for (token_symbol, values) in &list_erc20 {
         match values {
-            Some(values) => println!("{} {} {}", token_symbol, values.get("contract_address").unwrap(), values.get("balance").unwrap()),
+            Some(values) => println!("{} {} {:.7}", token_symbol, values.get("contract_address").unwrap(), values.get("balance").unwrap()),
             None => println!("{} {} {}", token_symbol, 0, 0)
         }
     }
