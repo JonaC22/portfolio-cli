@@ -1,11 +1,35 @@
+use std::collections::HashMap;
 use config;
 use std::env;
 use web3::types::H160;
 use serde_json as JSON;
 use jql;
-use serde_json::Value::Array;
+use serde_json::Value;
 
-async fn list_erc20_for_account(account_address : H160, etherscan_api_key : String) -> Vec<String> {
+type Tokens = HashMap<String, Option<HashMap<&'static str, String>>>;
+
+async fn get_erc20_balance_for_account(account_address : H160, etherscan_api_key : &String, contract_address : &str) -> String {
+    let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
+    let body = reqwest::get(&url)
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap();
+    let json: JSON::Value = serde_json::from_str(&body).unwrap();
+    let mix_selector = Some(r#""result""#);
+
+    let results = jql::walker(&json, mix_selector).unwrap();
+
+    match results {
+        Value::String(value) => {
+            value
+        },
+        _ => panic!("Error on processing ERC20 balance for {}", contract_address)
+    }
+}
+
+async fn list_erc20_for_account(account_address : H160, etherscan_api_key : &String) -> Tokens {
     let url = format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock=0&endblock=999999999&sort=asc&apikey={}", account_address, etherscan_api_key);
     let body = reqwest::get(&url)
                 .await
@@ -13,18 +37,31 @@ async fn list_erc20_for_account(account_address : H160, etherscan_api_key : Stri
                 .text()
                 .await
                 .unwrap();
-    dbg!(&body);
     let json: JSON::Value = serde_json::from_str(&body).unwrap();
     let mix_selector = Some(r#""result"|{"tokenSymbol", "contractAddress"}"#);
 
     let results = jql::walker(&json, mix_selector).unwrap();
 
     match results {
-        Array(value) => {
-            let mut v = value.into_iter().map(|value| value.to_string()).collect::<Vec<_>>();
-            v.sort();
-            v.dedup();
-            v
+        Value::Array(value) => {
+            let mut tokens = Tokens::new();
+            for entry in value {
+                let token_symbol = entry.get("tokenSymbol").unwrap().to_string();
+
+                match tokens.get(&token_symbol) {
+                    None => {
+                        let mut values : HashMap<&str, String> = HashMap::new();
+                        let contract_address : &str = entry.get("contractAddress").unwrap().as_str().unwrap();
+                        let balance : String = get_erc20_balance_for_account(account_address, etherscan_api_key, contract_address).await;
+
+                        values.insert("contract_address", contract_address.to_string());
+                        values.insert("balance", balance);
+                        tokens.insert(token_symbol, Some(values));
+                    }
+                    _ => continue
+                }
+            }
+            tokens
         },
         _ => panic!("Error on processing the list of ERC20 tokens")
     }
@@ -47,12 +84,17 @@ async fn main() -> web3::Result<()> {
     let eth_balance : f64 = balance as f64 / 10_u64.pow(18) as f64;
     println!("Balance of {:?}: {:.5} Ξ", address, eth_balance);
 
-    let list_erc20 : Vec<String> = list_erc20_for_account(address, settings.get::<String>("etherscan").unwrap()).await;
+    println!("Loading ERC20 token transactions, this will take a while...");
 
-    println!("List of ERC20 tokens:");
+    let list_erc20 = list_erc20_for_account(address, &settings.get::<String>("etherscan").unwrap()).await;
 
-    for token in list_erc20 {
-        println!("{}", token);
+    println!("Balance of ERC20 tokens:");
+
+    for (token_symbol, values) in &list_erc20 {
+        match values {
+            Some(values) => println!("{} {} {}", token_symbol, values.get("contract_address").unwrap(), values.get("balance").unwrap()),
+            None => println!("{} {} {}", token_symbol, 0, 0)
+        }
     }
 
     Ok(())
