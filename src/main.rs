@@ -6,16 +6,12 @@ use serde_json as JSON;
 use jql;
 use serde_json::Value;
 
-type Tokens = HashMap<String, Option<HashMap<&'static str, String>>>;
+type TokenInfo = HashMap<&'static str, String>;
+type Tokens = HashMap<String, Option<TokenInfo>>;
 
-async fn get_erc20_balance_for_account(account_address : H160, etherscan_api_key : &String, contract_address : &str) -> String {
+async fn get_erc20_balance_for_account(account_address : H160, etherscan_api_key : &str, contract_address : &str) -> String {
     let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
-    let body = reqwest::get(&url)
-                .await
-                .unwrap()
-                .text()
-                .await
-                .unwrap();
+    let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: JSON::Value = serde_json::from_str(&body).unwrap();
     let mix_selector = Some(r#""result""#);
 
@@ -29,14 +25,9 @@ async fn get_erc20_balance_for_account(account_address : H160, etherscan_api_key
     }
 }
 
-async fn list_erc20_for_account(account_address : H160, etherscan_api_key : &String) -> Tokens {
+async fn list_erc20_for_account(account_address : H160, etherscan_api_key : &str) -> Tokens {
     let url = format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock=0&endblock=999999999&sort=asc&apikey={}", account_address, etherscan_api_key);
-    let body = reqwest::get(&url)
-                .await
-                .unwrap()
-                .text()
-                .await
-                .unwrap();
+    let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: JSON::Value = serde_json::from_str(&body).unwrap();
     let mix_selector = Some(r#""result"|{"tokenSymbol", "contractAddress"}"#);
 
@@ -46,11 +37,11 @@ async fn list_erc20_for_account(account_address : H160, etherscan_api_key : &Str
         Value::Array(value) => {
             let mut tokens = Tokens::new();
             for entry in value {
-                let token_symbol = entry.get("tokenSymbol").unwrap().to_string();
+                let token_symbol : String = entry.get("tokenSymbol").unwrap().to_string();
 
                 match tokens.get(&token_symbol) {
                     None => {
-                        let mut values : HashMap<&str, String> = HashMap::new();
+                        let mut values : TokenInfo = HashMap::new();
                         let contract_address : &str = entry.get("contractAddress").unwrap().as_str().unwrap();
                         let balance : String = get_erc20_balance_for_account(account_address, etherscan_api_key, contract_address).await;
 
@@ -72,7 +63,7 @@ async fn main() -> web3::Result<()> {
     let mut settings = config::Config::default();
     settings.merge(config::File::with_name("Settings")).unwrap();
 
-    let endpoint = format!("https://mainnet.infura.io/v3/{}", settings.get::<String>("infura").unwrap()).to_owned();
+    let endpoint = format!("https://mainnet.infura.io/v3/{}", settings.get::<String>("infura").unwrap());
     let transport = web3::transports::Http::new(&endpoint)?;
     let web3 = web3::Web3::new(transport);
 
