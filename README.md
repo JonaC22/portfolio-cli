@@ -3,6 +3,13 @@ portfolio-cli
 
 Track balance of ETH and ERC20 tokens easily from cli
 
+### Requirements
+
+You will need some libs installed in your OS (Tested on Ubuntu 20.04):
+
+- gcc
+- libc-dev
+- libssl-dev
 
 ### Usage
 
