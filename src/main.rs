@@ -9,6 +9,23 @@ use serde_json::Value;
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
 
+async fn get_token_price(token_name : &str, versus_name : &str) -> String {
+    let url = format!("https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies={}", token_name, versus_name);
+    let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
+    let json: JSON::Value = serde_json::from_str(&body).unwrap();
+    let selector = format!(r#""{}"."{}""#, &token_name, &versus_name);
+    let mix_selector = Some(selector.as_str());
+
+    let results = jql::walker(&json, mix_selector).unwrap();
+
+    match results {
+        Value::Number(value) => {
+            value.to_string()
+        },
+        _ => panic!("Error on get token price for {} versus {}", token_name, versus_name)
+    }
+}
+
 async fn get_erc20_balance_for_account(account_address : H160, etherscan_api_key : &str, contract_address : &str) -> String {
     let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
@@ -73,8 +90,9 @@ async fn main() -> web3::Result<()> {
 
     println!("Calling balance...");
     let balance = web3.eth().balance(address, None).await?.low_u64();
-    let eth_balance : f64 = balance as f64 / 10_u64.pow(18) as f64;
-    println!("Balance of {:?}: {:.5} Ξ", address, eth_balance);
+    let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
+    let eth_balance_vs_usd = get_token_price("ethereum", "usd").await;
+    println!("Balance of {:?}: {:.5} Ξ / {} US$", address, eth_balance, eth_balance_vs_usd);
 
     println!("Loading ERC20 token transactions, this will take a while...");
 
