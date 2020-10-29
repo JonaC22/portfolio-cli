@@ -9,20 +9,29 @@ use serde_json::Value;
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
 
-async fn get_token_price(token_name : &str, versus_name : &str) -> String {
+fn transform_token_name(raw_token_name : &str) -> String {
+    raw_token_name.split(' ').next().unwrap().to_lowercase()
+}
+
+async fn get_token_price(raw_token_name : &str, versus_name : &str) -> String {
+    let token_name = transform_token_name(raw_token_name);
+
     let url = format!("https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies={}", token_name, versus_name);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: JSON::Value = serde_json::from_str(&body).unwrap();
-    let selector = format!(r#""{}"."{}""#, &token_name, &versus_name);
+    let selector = format!(r#""{}"."{}""#, token_name, versus_name);
     let mix_selector = Some(selector.as_str());
 
-    let results = jql::walker(&json, mix_selector).unwrap();
+    let results = jql::walker(&json, mix_selector).unwrap_or_default();
 
     match results {
         Value::Number(value) => {
             value.to_string()
         },
-        _ => panic!("Error on get token price for {} versus {}", token_name, versus_name)
+        _ => {
+            println!("Error on get token price for {} versus {}", token_name, versus_name);
+            "0".to_string()
+        }
     }
 }
 
@@ -47,7 +56,7 @@ async fn list_erc20_for_account(account_address : H160, etherscan_api_key : &str
     let url = format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock=0&endblock=999999999&sort=asc&apikey={}", account_address, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: JSON::Value = serde_json::from_str(&body).unwrap();
-    let mix_selector = Some(r#""result"|{"tokenSymbol", "contractAddress"}"#);
+    let mix_selector = Some(r#""result"|{"tokenSymbol", "tokenName", "contractAddress"}"#);
 
     let results = jql::walker(&json, mix_selector).unwrap();
 
@@ -65,6 +74,13 @@ async fn list_erc20_for_account(account_address : H160, etherscan_api_key : &str
 
                         values.insert("contract_address", contract_address.to_string());
                         values.insert("balance", balance);
+
+                        let token_name = entry.get("tokenName").unwrap().as_str().unwrap();
+
+                        let usd_balance = get_token_price(token_name, "usd").await;
+                        let eth_balance = get_token_price(token_name, "eth").await;
+                        values.insert("usd_balance", usd_balance);
+                        values.insert("eth_balance", eth_balance);
                         tokens.insert(token_symbol, Some(values));
                     }
                     _ => continue
@@ -102,8 +118,21 @@ async fn main() -> web3::Result<()> {
 
     for (token_symbol, values) in &list_erc20 {
         match values {
-            Some(values) => println!("{} {} {:.7}", token_symbol, values.get("contract_address").unwrap(), values.get("balance").unwrap()),
-            None => println!("{} {} {}", token_symbol, 0, 0)
+            Some(values) => {
+                let balance : f64 = values.get("balance").unwrap().parse::<f64>().unwrap();
+                let usd_balance : f64 = values.get("usd_balance").unwrap().parse::<f64>().unwrap() * balance;
+                let eth_balance : f64 = values.get("eth_balance").unwrap().parse::<f64>().unwrap() * balance;
+
+                println!(
+                    "{} {} {:.7} {} Ξ / {} US$",
+                    token_symbol,
+                    values.get("contract_address").unwrap(),
+                    balance,
+                    eth_balance,
+                    usd_balance
+                )
+            },
+            None => ()
         }
     }
 
