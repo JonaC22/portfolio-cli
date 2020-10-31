@@ -27,7 +27,6 @@ pub async fn get_token_price(raw_token_name : &str, versus_name : &str) -> Strin
           value.to_string()
       },
       _ => {
-          println!("Error on get token price for {} versus {}", token_name, versus_name);
           "0".to_string()
       }
   }
@@ -88,4 +87,34 @@ pub async fn list_erc20_for_account(account_address : H160, etherscan_api_key : 
       },
       _ => panic!("Error on processing the list of ERC20 tokens")
   }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use config;
+    use web3::types::H160;
+
+    #[tokio::test]
+    async fn get_token_price_success() {
+        let price = get_token_price("ethereum", "usd").await;
+        assert_ne!(price, "0");
+    }
+
+    #[tokio::test]
+    async fn get_token_price_fail() {
+        let price = get_token_price("nonexistingtoken", "usd").await;
+        assert_eq!(price, "0");
+    }
+
+    #[tokio::test]
+    async fn get_erc20_balance_for_account_success() {
+        let test_account_address : H160 = "000000000000000000000000000000000000dead".parse().unwrap();
+        let test_contract_address = "0x98b2dE885E916b598f65DeD2fDbb63187EAEf184";
+        let mut settings = config::Config::default();
+        settings.merge(config::File::with_name("Settings")).unwrap();
+        let test_etherscan_api_key = settings.get::<String>("test_etherscan").unwrap();
+        let balance = get_erc20_balance_for_account(test_account_address, &test_etherscan_api_key, test_contract_address).await;
+        assert_ne!(balance, "0");
+    }
 }
