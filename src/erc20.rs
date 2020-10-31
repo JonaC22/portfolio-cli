@@ -37,6 +37,14 @@ pub async fn get_erc20_balance_for_account(account_address : H160, etherscan_api
   let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
   let json: JSON::Value = serde_json::from_str(&body).unwrap();
   let mix_selector = Some(r#""result""#);
+  let message_selector = Some(r#""message""#);
+
+  let message = jql::walker(&json, message_selector).unwrap();
+  if let Value::String(status) = message {
+      if &status != "OK" {
+        panic!("Error on processing ERC20 balance for {}", contract_address)
+      }
+  }
 
   let results = jql::walker(&json, mix_selector).unwrap();
 
@@ -55,6 +63,14 @@ pub async fn list_erc20_for_account(account_address : H160, etherscan_api_key : 
   let json: JSON::Value = serde_json::from_str(&body).unwrap();
   let mix_selector = Some(r#""result"|{"tokenSymbol", "tokenName", "contractAddress"}"#);
 
+  let message_selector = Some(r#""message""#);
+
+  let message = jql::walker(&json, message_selector).unwrap();
+  if let Value::String(status) = message {
+      if &status != "OK" {
+        panic!("Error on processing the list of ERC20 tokens")
+      }
+  }
   let results = jql::walker(&json, mix_selector).unwrap();
 
   match results {
@@ -116,5 +132,16 @@ mod test {
         let test_etherscan_api_key = settings.get::<String>("test_etherscan").unwrap();
         let balance = get_erc20_balance_for_account(test_account_address, &test_etherscan_api_key, test_contract_address).await;
         assert_ne!(balance, "0");
+    }
+
+    #[should_panic(expected = "Error on processing ERC20 balance for 0x98b2dE885E916b598f65DeD2")]
+    #[tokio::test]
+    async fn get_erc20_balance_for_account_fail() {
+        let test_account_address : H160 = "000000000000000000000000000000000000dead".parse().unwrap();
+        let test_contract_address = "0x98b2dE885E916b598f65DeD2";
+        let mut settings = config::Config::default();
+        settings.merge(config::File::with_name("Settings")).unwrap();
+        let test_etherscan_api_key = settings.get::<String>("test_etherscan").unwrap();
+        get_erc20_balance_for_account(test_account_address, &test_etherscan_api_key, test_contract_address).await;
     }
 }
