@@ -16,6 +16,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Create Settings.toml
+      env:
+        TEST_ETHERSCAN_API_KEY: ${{ secrets.TEST_ETHERSCAN_API_KEY }}
+      run: echo "test_etherscan = $TEST_ETHERSCAN_API_KEY" > Settings.toml
     - name: Build
       run: cargo build --verbose
     - name: Run tests
