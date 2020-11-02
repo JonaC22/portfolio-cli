@@ -1,6 +1,5 @@
 mod erc20;
 
-use config;
 use std::env;
 
 #[tokio::main]
