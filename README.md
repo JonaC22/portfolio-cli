@@ -30,7 +30,7 @@ $ cargo run <wallet-address>
 
 ### Testing
 
-For testing, you will need an etherscan api key suitable for that, add it to `Settings.toml`:
+- For testing, you will need an etherscan api key suitable for that, add it to `Settings.toml`:
 
 ```
 ...
