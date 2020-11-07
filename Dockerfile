@@ -1,5 +1,4 @@
-FROM rustlang/rust:nightly-buster-slim
-RUN apt-get update && apt-get install libssl-dev libc-dev gcc -y
+FROM rustlang/rust:nightly-buster
 COPY src src
 COPY Cargo.toml Cargo.toml
 COPY Cargo.lock Cargo.lock
