@@ -4,4 +4,4 @@ COPY Cargo.toml Cargo.toml
 COPY Cargo.lock Cargo.lock
 RUN cargo build
 COPY Settings.toml Settings.toml
-CMD [ "cargo", "run" ]
+ENTRYPOINT [ "cargo", "run" ]
