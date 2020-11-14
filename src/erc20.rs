@@ -51,9 +51,7 @@ pub async fn get_erc20_balance_for_account(
     let results = jql::walker(&json, mix_selector).unwrap();
 
     match results {
-        Value::String(value) => {
-            value.parse::<f64>().unwrap() / 10_u64.pow(18) as f64
-        }
+        Value::String(value) => value.parse::<f64>().unwrap() / 10_u64.pow(18) as f64,
         _ => panic!("Error on processing ERC20 balance for {}", contract_address),
     }
 }
