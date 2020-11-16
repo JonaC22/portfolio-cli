@@ -119,7 +119,7 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
                     _ => continue,
                 }
             }
-            println!("");
+            println!();
             tokens
         }
         _ => panic!("Error on processing the list of ERC20 tokens"),
