@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::thread::sleep;
 use std::time::Duration;
 use web3::types::H160;
+use std::io::{self, Write};
 
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
@@ -100,16 +101,22 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
 
                         let token_name = entry.get("tokenName").unwrap().as_str().unwrap();
 
-                        let token_usd_price = get_token_price(token_name, "usd").await;
+                        let token_usd_price_future = get_token_price(token_name, "usd");
                         match limiter.check() {
                             Ok(()) => print!("."),
                             _ => sleep(Duration::from_millis(1000)),
                         }
-                        let token_eth_price = get_token_price(token_name, "eth").await;
+                        io::stdout().flush().unwrap();
+                        let token_eth_price_future  = get_token_price(token_name, "eth");
                         match limiter.check() {
                             Ok(()) => print!("."),
                             _ => sleep(Duration::from_millis(1000)),
                         }
+                        io::stdout().flush().unwrap();
+
+                        let token_usd_price = token_usd_price_future.await;
+                        let token_eth_price = token_eth_price_future.await;
+
                         values.insert("usd_price", token_usd_price.to_string());
                         values.insert("eth_price", token_eth_price.to_string());
                         values.insert("usd_balance", (balance * token_usd_price).to_string());
