@@ -1,10 +1,10 @@
+use governor::{Quota, RateLimiter};
+use nonzero_ext::*;
 use serde_json::Value;
 use std::collections::HashMap;
-use web3::types::H160;
-use nonzero_ext::*;
-use governor::{Quota, RateLimiter};
-use std::time::Duration;
 use std::thread::sleep;
+use std::time::Duration;
+use web3::types::H160;
 
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
@@ -102,13 +102,13 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
 
                         let token_usd_price = get_token_price(token_name, "usd").await;
                         match limiter.check() {
-                            Ok(())=> print!("."),
-                            _ => sleep(Duration::from_millis(1000))
+                            Ok(()) => print!("."),
+                            _ => sleep(Duration::from_millis(1000)),
                         }
                         let token_eth_price = get_token_price(token_name, "eth").await;
                         match limiter.check() {
-                            Ok(())=> print!("."),
-                            _ => sleep(Duration::from_millis(1000))
+                            Ok(()) => print!("."),
+                            _ => sleep(Duration::from_millis(1000)),
                         }
                         values.insert("usd_price", token_usd_price.to_string());
                         values.insert("eth_price", token_eth_price.to_string());
