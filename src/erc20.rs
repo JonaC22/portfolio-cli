@@ -2,10 +2,10 @@ use governor::{Quota, RateLimiter};
 use nonzero_ext::*;
 use serde_json::Value;
 use std::collections::HashMap;
+use std::io::{self, Write};
 use std::thread::sleep;
 use std::time::Duration;
 use web3::types::H160;
-use std::io::{self, Write};
 
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
@@ -107,7 +107,7 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
                             _ => sleep(Duration::from_millis(1000)),
                         }
                         io::stdout().flush().unwrap();
-                        let token_eth_price_future  = get_token_price(token_name, "eth");
+                        let token_eth_price_future = get_token_price(token_name, "eth");
                         match limiter.check() {
                             Ok(()) => print!("."),
                             _ => sleep(Duration::from_millis(1000)),
