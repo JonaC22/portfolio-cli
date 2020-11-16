@@ -1,7 +1,10 @@
-use serde_json as JSON;
 use serde_json::Value;
 use std::collections::HashMap;
 use web3::types::H160;
+use nonzero_ext::*;
+use governor::{Quota, RateLimiter};
+use std::time::Duration;
+use std::thread::sleep;
 
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
@@ -18,7 +21,7 @@ pub async fn get_token_price(raw_token_name: &str, versus_name: &str) -> f64 {
         token_name, versus_name
     );
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
-    let json: JSON::Value = serde_json::from_str(&body).unwrap();
+    let json: Value = serde_json::from_str(&body).unwrap();
     let selector = format!(r#""{}"."{}""#, token_name, versus_name);
     let mix_selector = Some(selector.as_str());
 
@@ -37,7 +40,7 @@ pub async fn get_erc20_balance_for_account(
 ) -> f64 {
     let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
-    let json: JSON::Value = serde_json::from_str(&body).unwrap();
+    let json: Value = serde_json::from_str(&body).unwrap();
     let mix_selector = Some(r#""result""#);
     let message_selector = Some(r#""message""#);
 
@@ -59,7 +62,7 @@ pub async fn get_erc20_balance_for_account(
 pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &str) -> Tokens {
     let url = format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock=0&endblock=999999999&sort=asc&apikey={}", account_address, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
-    let json: JSON::Value = serde_json::from_str(&body).unwrap();
+    let json: Value = serde_json::from_str(&body).unwrap();
     let mix_selector = Some(r#""result"|{"tokenSymbol", "tokenName", "contractAddress"}"#);
 
     let message_selector = Some(r#""message""#);
@@ -71,6 +74,8 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
         }
     }
     let results = jql::walker(&json, mix_selector).unwrap();
+
+    let limiter = RateLimiter::direct(Quota::per_second(nonzero!(9u32))); // Allow 9 units per second
 
     match results {
         Value::Array(value) => {
@@ -96,7 +101,15 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
                         let token_name = entry.get("tokenName").unwrap().as_str().unwrap();
 
                         let token_usd_price = get_token_price(token_name, "usd").await;
+                        match limiter.check() {
+                            Ok(())=> print!("."),
+                            _ => sleep(Duration::from_millis(1000))
+                        }
                         let token_eth_price = get_token_price(token_name, "eth").await;
+                        match limiter.check() {
+                            Ok(())=> print!("."),
+                            _ => sleep(Duration::from_millis(1000))
+                        }
                         values.insert("usd_price", token_usd_price.to_string());
                         values.insert("eth_price", token_eth_price.to_string());
                         values.insert("usd_balance", (balance * token_usd_price).to_string());
@@ -106,6 +119,7 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
                     _ => continue,
                 }
             }
+            println!("");
             tokens
         }
         _ => panic!("Error on processing the list of ERC20 tokens"),
