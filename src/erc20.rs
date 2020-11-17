@@ -1,13 +1,13 @@
 use governor::{Quota, RateLimiter};
+use indicatif::ProgressBar;
 use nonzero_ext::*;
 use serde_json::Value;
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::io::{self, Write};
 use std::thread::sleep;
-use std::convert::TryInto;
 use std::time::Duration;
 use web3::types::H160;
-use indicatif::ProgressBar;
 
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
