@@ -4,8 +4,10 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::io::{self, Write};
 use std::thread::sleep;
+use std::convert::TryInto;
 use std::time::Duration;
 use web3::types::H160;
+use indicatif::ProgressBar;
 
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
@@ -81,6 +83,7 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
     match results {
         Value::Array(value) => {
             let mut tokens = Tokens::new();
+            let pb = ProgressBar::new(value.len().try_into().unwrap());
             for entry in value {
                 let token_symbol: String = entry.get("tokenSymbol").unwrap().to_string();
 
@@ -103,13 +106,13 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
 
                         let token_usd_price_future = get_token_price(token_name, "usd");
                         match limiter.check() {
-                            Ok(()) => print!("."),
+                            Ok(()) => pb.inc(1),
                             _ => sleep(Duration::from_millis(1000)),
                         }
                         io::stdout().flush().unwrap();
                         let token_eth_price_future = get_token_price(token_name, "eth");
                         match limiter.check() {
-                            Ok(()) => print!("."),
+                            Ok(()) => pb.inc(1),
                             _ => sleep(Duration::from_millis(1000)),
                         }
                         io::stdout().flush().unwrap();
@@ -126,7 +129,7 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
                     _ => continue,
                 }
             }
-            println!();
+            pb.finish_with_message("done");
             tokens
         }
         _ => panic!("Error on processing the list of ERC20 tokens"),
