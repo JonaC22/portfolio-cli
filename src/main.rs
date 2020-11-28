@@ -33,6 +33,9 @@ async fn main() -> web3::Result<()> {
 
     println!("Balance of ERC20 tokens:");
 
+    let mut total_usd_balance = eth_balance_vs_usd;
+    let mut total_eth_balance = eth_balance;
+
     for (token_symbol, values) in &list_erc20 {
         match values {
             Some(values) => {
@@ -42,8 +45,11 @@ async fn main() -> web3::Result<()> {
                 let eth_balance: f64 =
                     values.get("eth_balance").unwrap().parse::<f64>().unwrap() * balance;
 
+                total_usd_balance += usd_balance;
+                total_eth_balance += eth_balance;
+
                 println!(
-                    "{} {} {:.7} {} Ξ / {} US$",
+                    "{} {} {:.5} {} Ξ / {} US$",
                     token_symbol,
                     values.get("contract_address").unwrap(),
                     balance,
@@ -54,6 +60,9 @@ async fn main() -> web3::Result<()> {
             None => (),
         }
     }
+
+    println!("-----------------------------------------");
+    println!("Total balance: {:.5} Ξ / {} US$", total_eth_balance, total_usd_balance);
 
     Ok(())
 }
