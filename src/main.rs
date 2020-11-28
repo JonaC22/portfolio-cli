@@ -62,7 +62,10 @@ async fn main() -> web3::Result<()> {
     }
 
     println!("-----------------------------------------");
-    println!("Total balance: {:.5} Ξ / {} US$", total_eth_balance, total_usd_balance);
+    println!(
+        "Total balance: {:.5} Ξ / {} US$",
+        total_eth_balance, total_usd_balance
+    );
 
     Ok(())
 }
