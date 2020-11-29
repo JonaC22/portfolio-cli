@@ -25,7 +25,10 @@ pub async fn get_token_price(raw_token_name: &str, versus_name: &str) -> f64 {
     );
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: Value = serde_json::from_str(&body).unwrap_or_else(|e| {
-        panic!("Could not fetch from coingecko: error: {} - response body: {:?}", e, body);
+        panic!(
+            "Could not fetch from coingecko: error: {} - response body: {:?}",
+            e, body
+        );
     });
     let selector = format!(r#""{}"."{}""#, token_name, versus_name);
     let mix_selector = Some(selector.as_str());
