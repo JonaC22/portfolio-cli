@@ -24,7 +24,9 @@ pub async fn get_token_price(raw_token_name: &str, versus_name: &str) -> f64 {
         token_name, versus_name
     );
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
-    let json: Value = serde_json::from_str(&body).unwrap();
+    let json: Value = serde_json::from_str(&body).unwrap_or_else(|e| {
+        panic!("Could not fetch from coingecko: error: {} - response body: {:?}", e, body);
+    });
     let selector = format!(r#""{}"."{}""#, token_name, versus_name);
     let mix_selector = Some(selector.as_str());
 
@@ -78,13 +80,16 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
     }
     let results = jql::walker(&json, mix_selector).unwrap();
 
-    let limiter = RateLimiter::direct(Quota::per_second(nonzero!(9u32))); // Allow 9 units per second
+    let limiter = RateLimiter::direct(Quota::per_second(nonzero!(8u32))); // Allow 8 units per second
 
     match results {
         Value::Array(value) => {
             let mut tokens = Tokens::new();
             let pb = ProgressBar::new(value.len().try_into().unwrap());
+
             for entry in value {
+                pb.inc(1);
+                io::stdout().flush().unwrap();
                 let token_symbol: String = entry.get("tokenSymbol").unwrap().to_string();
 
                 match tokens.get(&token_symbol) {
@@ -106,16 +111,15 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
 
                         let token_usd_price_future = get_token_price(token_name, "usd");
                         match limiter.check() {
-                            Ok(()) => pb.inc(1),
-                            _ => sleep(Duration::from_millis(1000)),
+                            Ok(()) => (),
+                            _ => sleep(Duration::from_millis(2000)),
                         }
-                        io::stdout().flush().unwrap();
+
                         let token_eth_price_future = get_token_price(token_name, "eth");
                         match limiter.check() {
-                            Ok(()) => pb.inc(1),
-                            _ => sleep(Duration::from_millis(1000)),
+                            Ok(()) => (),
+                            _ => sleep(Duration::from_millis(2000)),
                         }
-                        io::stdout().flush().unwrap();
 
                         let token_usd_price = token_usd_price_future.await;
                         let token_eth_price = token_eth_price_future.await;
