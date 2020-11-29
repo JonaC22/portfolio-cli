@@ -22,7 +22,7 @@ async fn main() -> web3::Result<()> {
     let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
     let eth_balance_vs_usd = eth_balance * erc20::get_token_price("ethereum", "usd").await;
     println!(
-        "Balance of {:?}: {:.5} Ξ / {} US$",
+        "Balance of {:?}: {:.6} Ξ / {:.2} US$",
         address, eth_balance, eth_balance_vs_usd
     );
 
@@ -49,7 +49,7 @@ async fn main() -> web3::Result<()> {
                 total_eth_balance += eth_balance;
 
                 println!(
-                    "{} {} {:.5} {} Ξ / {} US$",
+                    "{} {} {:.6} {:.6} Ξ / {:.2} US$",
                     token_symbol,
                     values.get("contract_address").unwrap(),
                     balance,
@@ -63,7 +63,7 @@ async fn main() -> web3::Result<()> {
 
     println!("-----------------------------------------");
     println!(
-        "Total balance: {:.5} Ξ / {} US$",
+        "Total balance: {:.6} Ξ / {:.2} US$",
         total_eth_balance, total_usd_balance
     );
 
