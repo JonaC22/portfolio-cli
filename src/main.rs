@@ -1,6 +1,15 @@
 mod erc20;
 
 use std::env;
+use piechart::{Chart, Color, Data};
+use rand::{thread_rng, Rng};
+use rand::distributions::Alphanumeric;
+
+fn random_char() -> char {
+    thread_rng().sample_iter(&Alphanumeric)
+                .take(1)
+                .collect::<Vec<char>>()[0]
+}
 
 #[tokio::main]
 async fn main() -> web3::Result<()> {
@@ -36,6 +45,11 @@ async fn main() -> web3::Result<()> {
     let mut total_usd_balance = eth_balance_vs_usd;
     let mut total_eth_balance = eth_balance;
 
+    let mut data = Vec::new();
+
+    let mut rng = rand::thread_rng();
+    data.push(Data { label: "ETH".into(), value: eth_balance_vs_usd as f32, color: Some(Color::Fixed(rng.gen_range(0, 255))), fill: random_char() });
+
     for (token_symbol, values) in &list_erc20 {
         match values {
             Some(values) => {
@@ -55,11 +69,26 @@ async fn main() -> web3::Result<()> {
                     balance,
                     eth_balance,
                     usd_balance
-                )
+                );
+
+                let mut rng = rand::thread_rng();
+                data.push(Data { label: token_symbol.into(), value: usd_balance as f32, color: Some(Color::Fixed(rng.gen_range(0, 255))), fill: random_char() });
             }
             None => (),
         }
     }
+
+    // let data = vec![
+    //     Data { label: "Chocolate".into(), value: 4.0, color: Some(Color::Blue), fill: '•' },
+    //     Data { label: "Strawberry".into(), value: 2.0, color: Some(Color::Red), fill: '▪' },
+    //     Data { label: "Vanilla".into(), value: 2.6, color: Some(Color::Yellow), fill: '▴' },
+    // ];
+
+    Chart::new()
+        .radius(15)
+        .aspect_ratio(5)
+        .legend(true)
+        .draw(&data);
 
     println!("-----------------------------------------");
     println!(
