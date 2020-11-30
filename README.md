@@ -3,6 +3,11 @@ portfolio-cli
 
 Track balance of ETH and ERC20 tokens easily from cli
 
+### Features
+
+- List ETH and ERC20 total balance in ETH / USD
+- Show portfolio total balance in pie chart
+
 ### Requirements
 
 You will need some libs installed in your OS (Tested on Ubuntu 20.04):
