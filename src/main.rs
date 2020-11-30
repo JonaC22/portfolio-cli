@@ -1,14 +1,15 @@
 mod erc20;
 
-use std::env;
 use piechart::{Chart, Color, Data};
-use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
+use std::env;
 
 fn random_char() -> char {
-    thread_rng().sample_iter(&Alphanumeric)
-                .take(1)
-                .collect::<Vec<char>>()[0]
+    thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(1)
+        .collect::<Vec<char>>()[0]
 }
 
 #[tokio::main]
@@ -48,7 +49,12 @@ async fn main() -> web3::Result<()> {
     let mut data = Vec::new();
 
     let mut rng = rand::thread_rng();
-    data.push(Data { label: "ETH".into(), value: eth_balance_vs_usd as f32, color: Some(Color::Fixed(rng.gen_range(0, 255))), fill: random_char() });
+    data.push(Data {
+        label: "ETH".into(),
+        value: eth_balance_vs_usd as f32,
+        color: Some(Color::Fixed(rng.gen_range(0, 255))),
+        fill: random_char(),
+    });
 
     for (token_symbol, values) in &list_erc20 {
         match values {
@@ -72,7 +78,12 @@ async fn main() -> web3::Result<()> {
                 );
 
                 let mut rng = rand::thread_rng();
-                data.push(Data { label: token_symbol.into(), value: usd_balance as f32, color: Some(Color::Fixed(rng.gen_range(0, 255))), fill: random_char() });
+                data.push(Data {
+                    label: token_symbol.into(),
+                    value: usd_balance as f32,
+                    color: Some(Color::Fixed(rng.gen_range(0, 255))),
+                    fill: random_char(),
+                });
             }
             None => (),
         }
