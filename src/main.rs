@@ -60,10 +60,8 @@ async fn main() -> web3::Result<()> {
         match values {
             Some(values) => {
                 let balance: f64 = values.get("balance").unwrap().parse::<f64>().unwrap();
-                let usd_balance: f64 =
-                    values.get("usd_balance").unwrap().parse::<f64>().unwrap() * balance;
-                let eth_balance: f64 =
-                    values.get("eth_balance").unwrap().parse::<f64>().unwrap() * balance;
+                let usd_balance: f64 = values.get("usd_balance").unwrap().parse::<f64>().unwrap();
+                let eth_balance: f64 = values.get("eth_balance").unwrap().parse::<f64>().unwrap();
 
                 total_usd_balance += usd_balance;
                 total_eth_balance += eth_balance;
@@ -88,12 +86,6 @@ async fn main() -> web3::Result<()> {
             None => (),
         }
     }
-
-    // let data = vec![
-    //     Data { label: "Chocolate".into(), value: 4.0, color: Some(Color::Blue), fill: '•' },
-    //     Data { label: "Strawberry".into(), value: 2.0, color: Some(Color::Red), fill: '▪' },
-    //     Data { label: "Vanilla".into(), value: 2.6, color: Some(Color::Yellow), fill: '▴' },
-    // ];
 
     Chart::new()
         .radius(15)
