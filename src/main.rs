@@ -63,25 +63,27 @@ async fn main() -> web3::Result<()> {
                 let usd_balance: f64 = values.get("usd_balance").unwrap().parse::<f64>().unwrap();
                 let eth_balance: f64 = values.get("eth_balance").unwrap().parse::<f64>().unwrap();
 
-                total_usd_balance += usd_balance;
-                total_eth_balance += eth_balance;
+                if usd_balance >= 0.01 {
+                    total_usd_balance += usd_balance;
+                    total_eth_balance += eth_balance;
 
-                println!(
-                    "{} {} {:.6} {:.6} Ξ / {:.2} US$",
-                    token_symbol,
-                    values.get("contract_address").unwrap(),
-                    balance,
-                    eth_balance,
-                    usd_balance
-                );
+                    println!(
+                        "{} {} {:.6} {:.6} Ξ / {:.2} US$",
+                        token_symbol,
+                        values.get("contract_address").unwrap(),
+                        balance,
+                        eth_balance,
+                        usd_balance
+                    );
 
-                let mut rng = rand::thread_rng();
-                data.push(Data {
-                    label: token_symbol.into(),
-                    value: usd_balance as f32,
-                    color: Some(Color::Fixed(rng.gen_range(0, 255))),
-                    fill: random_char(),
-                });
+                    let mut rng = rand::thread_rng();
+                    data.push(Data {
+                        label: token_symbol.into(),
+                        value: usd_balance as f32,
+                        color: Some(Color::Fixed(rng.gen_range(0, 255))),
+                        fill: random_char(),
+                    });
+                }
             }
             None => (),
         }
