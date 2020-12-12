@@ -4,6 +4,7 @@ use piechart::{Chart, Color, Data};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use std::env;
+use std::cmp::Ordering::Equal;
 
 fn random_char() -> char {
     thread_rng()
@@ -88,6 +89,8 @@ async fn main() -> web3::Result<()> {
             None => (),
         }
     }
+
+    data.sort_by(|a, b| b.value.partial_cmp(&a.value).unwrap_or(Equal));
 
     Chart::new()
         .radius(15)
