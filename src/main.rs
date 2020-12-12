@@ -3,8 +3,8 @@ mod erc20;
 use piechart::{Chart, Color, Data};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
-use std::env;
 use std::cmp::Ordering::Equal;
+use std::env;
 
 fn random_char() -> char {
     thread_rng()
