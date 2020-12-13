@@ -93,8 +93,8 @@ async fn main() -> web3::Result<()> {
     data.sort_by(|a, b| b.value.partial_cmp(&a.value).unwrap_or(Equal));
 
     Chart::new()
-        .radius(15)
-        .aspect_ratio(5)
+        .radius(20)
+        .aspect_ratio(4)
         .legend(true)
         .draw(&data);
 
