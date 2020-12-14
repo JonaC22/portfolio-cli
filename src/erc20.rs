@@ -1,7 +1,7 @@
 use governor::{Quota, RateLimiter};
 use indicatif::ProgressBar;
 use nonzero_ext::*;
-use serde_json::Value;
+use serde_json::{Value, Error};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::{self, Write};
@@ -23,21 +23,37 @@ pub async fn get_token_price(raw_token_name: &str, versus_name: &str) -> f64 {
         "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies={}",
         token_name, versus_name
     );
-    let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
-    let json: Value = serde_json::from_str(&body).unwrap_or_else(|e| {
-        panic!(
-            "Could not fetch from coingecko: error: {} - response body: {:?}",
-            e, body
-        );
-    });
-    let selector = format!(r#""{}"."{}""#, token_name, versus_name);
-    let mix_selector = Some(selector.as_str());
+    let mut retry : u32 = 0;
+    let max_retries : u32 = 3;
 
-    let results = jql::walker(&json, mix_selector).unwrap_or_default();
+    loop {
+        let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
+        let result : Result<Value, Error> = serde_json::from_str(&body);
+        match result {
+            Ok(json) => {
+                let selector = format!(r#""{}"."{}""#, token_name, versus_name);
+                let mix_selector = Some(selector.as_str());
 
-    match results {
-        Value::Number(value) => value.to_string().parse::<f64>().unwrap(),
-        _ => 0.0,
+                let results = jql::walker(&json, mix_selector).unwrap_or_default();
+
+                match results {
+                    Value::Number(value) => return value.to_string().parse::<f64>().unwrap(),
+                    _ => return 0.0,
+                }
+            },
+            _ => {
+                if retry > max_retries {
+                    panic!(
+                        "Could not fetch from coingecko: response body: {:?}",
+                        &body
+                    );
+                } else {
+                    retry += 1;
+                    println!("Failed to fetch from coingecko, retry up to {}, retry number: {}", max_retries, retry);
+                    sleep(Duration::from_millis(2000));
+                }
+            }
+        }
     }
 }
 
