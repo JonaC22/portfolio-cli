@@ -1,7 +1,7 @@
 [package]
 name = "portfolio-cli"
 version = "1.0.0"
-authors = ["jonac22 <jonathan.corallo.utn@gmail.com>"]
+authors = ["Jonathan Corallo <JonaC22@users.noreply.github.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -17,4 +17,4 @@ governor = "0.3.1"
 nonzero_ext = "0.2.0"
 indicatif = "0.15.0"
 piechart = "0.1.2"
-rand = "0.7.3"
+rand = "0.8.0"
