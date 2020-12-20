@@ -184,7 +184,7 @@ mod test {
         let test_contract_address = "0x98b2dE885E916b598f65DeD2fDbb63187EAEf184";
         let mut settings = config::Config::default();
         settings.merge(config::File::with_name("Settings")).unwrap();
-        let test_etherscan_api_key = settings.get::<String>("test_etherscan").unwrap();
+        let test_etherscan_api_key = settings.get::<String>("test_etherscan").unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
         let balance = get_erc20_balance_for_account(
             test_account_address,
             &test_etherscan_api_key,
@@ -202,7 +202,7 @@ mod test {
         let test_contract_address = "0x98b2dE885E916b598f65DeD2";
         let mut settings = config::Config::default();
         settings.merge(config::File::with_name("Settings")).unwrap();
-        let test_etherscan_api_key = settings.get::<String>("test_etherscan").unwrap();
+        let test_etherscan_api_key = settings.get::<String>("test_etherscan").unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
         get_erc20_balance_for_account(
             test_account_address,
             &test_etherscan_api_key,
