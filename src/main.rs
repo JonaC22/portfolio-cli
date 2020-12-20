@@ -10,7 +10,7 @@ fn random_char() -> char {
     thread_rng()
         .sample_iter(&Alphanumeric)
         .take(1)
-        .collect::<Vec<char>>()[0]
+        .collect::<Vec<u8>>()[0] as char
 }
 
 #[tokio::main]
@@ -56,7 +56,7 @@ async fn main() -> web3::Result<()> {
     data.push(Data {
         label: "ETH".into(),
         value: eth_balance_vs_usd as f32,
-        color: Some(Color::Fixed(rng.gen_range(0, 255))),
+        color: Some(Color::Fixed(rng.gen_range(0..255))),
         fill: random_char(),
     });
 
@@ -84,7 +84,7 @@ async fn main() -> web3::Result<()> {
                     data.push(Data {
                         label: token_symbol.into(),
                         value: usd_balance as f32,
-                        color: Some(Color::Fixed(rng.gen_range(0, 255))),
+                        color: Some(Color::Fixed(rng.gen_range(0..255))),
                         fill: random_char(),
                     });
                 }
