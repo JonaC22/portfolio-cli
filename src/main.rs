@@ -1,10 +1,10 @@
 mod erc20;
 
+use clap::{Arg, App};
 use piechart::{Chart, Color, Data};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use std::cmp::Ordering::Equal;
-use std::env;
 
 fn random_char() -> char {
     thread_rng()
@@ -15,6 +15,22 @@ fn random_char() -> char {
 
 #[tokio::main]
 async fn main() -> web3::Result<()> {
+    let matches = App::new("portfolio-cli")
+        .version("0.1.0")
+        .author("JonaC22<JonaC22@users.noreply.github.com>")
+        .about("Track balance of ETH and ERC20 tokens easily from cli")
+        .arg(Arg::with_name("address")
+                 .short("a")
+                 .long("address")
+                 .takes_value(true)
+                 .help("ETH address"))
+        .arg(Arg::with_name("verbose")
+                 .short("v")
+                 .long("verbose")
+                 .takes_value(false)
+                 .help("Verbose"))
+        .get_matches();
+
     let mut settings = config::Config::default();
     settings.merge(config::File::with_name("Settings")).unwrap();
 
@@ -29,8 +45,18 @@ async fn main() -> web3::Result<()> {
     let transport = web3::transports::Http::new(&endpoint)?;
     let web3 = web3::Web3::new(transport);
 
-    let args: Vec<String> = env::args().collect();
-    let address = args[1].parse().unwrap();
+    let address_arg = matches.value_of("address");
+    match address_arg {
+        None => println!("No address specified, exit."),
+        Some(a) => {
+            match a.parse::<web3::types::H160>() {
+                Ok(address) => println!("Address: {}", address),
+                Err(_) => println!("Error at specified address: {}", a),
+            }
+        }
+    }
+
+    let address = matches.value_of("address").unwrap().parse().unwrap();
 
     println!("Calling balance...");
     let balance = web3.eth().balance(address, None).await?.low_u64();
