@@ -1,6 +1,6 @@
 mod erc20;
 
-use clap::{Arg, App};
+use clap::{App, Arg};
 use piechart::{Chart, Color, Data};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -19,16 +19,20 @@ async fn main() -> web3::Result<()> {
         .version("0.1.0")
         .author("JonaC22<JonaC22@users.noreply.github.com>")
         .about("Track balance of ETH and ERC20 tokens easily from cli")
-        .arg(Arg::with_name("address")
-                 .short("a")
-                 .long("address")
-                 .takes_value(true)
-                 .help("ETH address"))
-        .arg(Arg::with_name("verbose")
-                 .short("v")
-                 .long("verbose")
-                 .takes_value(false)
-                 .help("Verbose"))
+        .arg(
+            Arg::with_name("address")
+                .short("a")
+                .long("address")
+                .takes_value(true)
+                .help("ETH address"),
+        )
+        .arg(
+            Arg::with_name("verbose")
+                .short("v")
+                .long("verbose")
+                .takes_value(false)
+                .help("Verbose"),
+        )
         .get_matches();
 
     let mut settings = config::Config::default();
@@ -48,12 +52,10 @@ async fn main() -> web3::Result<()> {
     let address_arg = matches.value_of("address");
     match address_arg {
         None => println!("No address specified, exit."),
-        Some(a) => {
-            match a.parse::<web3::types::H160>() {
-                Ok(address) => println!("Address: {}", address),
-                Err(_) => println!("Error at specified address: {}", a),
-            }
-        }
+        Some(a) => match a.parse::<web3::types::H160>() {
+            Ok(address) => println!("Address: {}", address),
+            Err(_) => println!("Error at specified address: {}", a),
+        },
     }
 
     let address = matches.value_of("address").unwrap().parse().unwrap();
