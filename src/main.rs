@@ -24,6 +24,7 @@ async fn main() -> web3::Result<()> {
                 .short("a")
                 .long("address")
                 .takes_value(true)
+                .required(true)
                 .help("ETH address"),
         )
         .arg(
@@ -31,7 +32,8 @@ async fn main() -> web3::Result<()> {
                 .short("v")
                 .long("verbose")
                 .takes_value(false)
-                .help("Verbose"),
+                .required(false)
+                .help("Verbose mode"),
         )
         .get_matches();
 
@@ -49,13 +51,20 @@ async fn main() -> web3::Result<()> {
     let transport = web3::transports::Http::new(&endpoint)?;
     let web3 = web3::Web3::new(transport);
 
-    let address_arg = matches.value_of("address");
-    match address_arg {
+    let verbose : bool = matches.is_present("verbose");
+
+    match matches.value_of("address") {
         None => println!("No address specified, exit."),
-        Some(a) => match a.parse::<web3::types::H160>() {
-            Ok(address) => println!("Address: {}", address),
-            Err(_) => println!("Error at specified address: {}", a),
-        },
+        Some(a) => {
+            match a.parse::<web3::types::H160>() {
+                Ok(address) => {
+                    if verbose {
+                        println!("Address: {}", address)
+                    }
+                },
+                Err(_) => println!("Error at specified address: {}", a),
+            }
+        }
     }
 
     let address = matches.value_of("address").unwrap().parse().unwrap();
