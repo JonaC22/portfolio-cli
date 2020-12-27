@@ -17,7 +17,7 @@ fn random_char() -> char {
 async fn main() -> web3::Result<()> {
     let matches = App::new("portfolio-cli")
         .version("0.1.0")
-        .author("JonaC22<JonaC22@users.noreply.github.com>")
+        .author("Jonathan <JonaC22@users.noreply.github.com>")
         .about("Track balance of ETH and ERC20 tokens easily from cli")
         .arg(
             Arg::with_name("address")

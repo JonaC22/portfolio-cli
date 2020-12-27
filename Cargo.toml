@@ -1,7 +1,7 @@
 [package]
 name = "portfolio-cli"
 version = "1.0.0"
-authors = ["JonaC22 <JonaC22@users.noreply.github.com>"]
+authors = ["Jonathan <JonaC22@users.noreply.github.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
