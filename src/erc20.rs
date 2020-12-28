@@ -32,7 +32,7 @@ async fn get_coingecko_token_id_from_contract_address(contract_address: &str) ->
 
                 match results {
                     Value::String(value) => return value.to_string().parse::<String>().unwrap(),
-                    _ => return "".to_string()
+                    _ => return "".to_string(),
                 }
             }
             _ => {
@@ -52,7 +52,7 @@ async fn get_coingecko_token_id_from_contract_address(contract_address: &str) ->
 }
 
 pub async fn get_token_price(contract_address: &str, versus_name: &str) -> f64 {
-    let token_id : String;
+    let token_id: String;
 
     if contract_address == "ethereum" {
         token_id = "ethereum".to_string();
