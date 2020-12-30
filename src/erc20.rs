@@ -18,7 +18,7 @@ async fn get_coingecko_token_id_from_contract_address(contract_address: &str) ->
         contract_address
     );
     let mut retry: u32 = 0;
-    let max_retries: u32 = 3;
+    let max_retries: u32 = 5;
 
     loop {
         let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
@@ -44,7 +44,7 @@ async fn get_coingecko_token_id_from_contract_address(contract_address: &str) ->
                         "Failed to fetch from coingecko, retry up to {}, retry number: {}",
                         max_retries, retry
                     );
-                    sleep(Duration::from_millis(2000));
+                    sleep(Duration::from_millis((2_u32.pow(retry) * 1000).into()));
                 }
             }
         }
