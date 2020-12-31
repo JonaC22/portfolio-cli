@@ -53,19 +53,26 @@ async fn main() -> web3::Result<()> {
 
     let verbose: bool = matches.is_present("verbose");
 
+    let address;
+
     match matches.value_of("address") {
-        None => println!("No address specified, exit."),
-        Some(a) => match a.parse::<web3::types::H160>() {
-            Ok(address) => {
-                if verbose {
-                    println!("Address: {}", address)
-                }
+        None => panic!("No address specified, exit."),
+        Some(r) => {
+            let mut raw_address = r;
+            if r.starts_with("0x") {
+                raw_address = &r[2..];
             }
-            Err(_) => println!("Error at specified address: {}", a),
+            match raw_address.parse::<web3::types::H160>() {
+                Ok(a) => {
+                    if verbose {
+                        println!("Address: {}", a)
+                    }
+                    address = a;
+                }
+                Err(_) => panic!("Error at specified address: {}", raw_address),
+            }
         },
     }
-
-    let address = matches.value_of("address").unwrap().parse().unwrap();
 
     println!("Calling balance...");
     let balance = web3.eth().balance(address, None).await?.low_u64();
