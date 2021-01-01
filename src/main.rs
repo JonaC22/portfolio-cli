@@ -71,7 +71,7 @@ async fn main() -> web3::Result<()> {
                 }
                 Err(_) => panic!("Error at specified address: {}", raw_address),
             }
-        },
+        }
     }
 
     println!("Calling balance...");
