@@ -65,7 +65,7 @@ pub async fn get_token_price(contract_address: &str, versus_name: &str) -> f64 {
         token_id, versus_name
     );
     let mut retry: u32 = 0;
-    let max_retries: u32 = 3;
+    let max_retries: u32 = 5;
 
     loop {
         let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
@@ -91,7 +91,7 @@ pub async fn get_token_price(contract_address: &str, versus_name: &str) -> f64 {
                         "Failed to fetch from coingecko, retry up to {}, retry number: {}",
                         max_retries, retry
                     );
-                    sleep(Duration::from_millis(2000));
+                    sleep(Duration::from_millis((2_u32.pow(retry) * 1000).into()));
                 }
             }
         }
