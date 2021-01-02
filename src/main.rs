@@ -1,7 +1,9 @@
 mod erc20;
 
+#[macro_use] extern crate prettytable;
 use clap::{App, Arg};
 use piechart::{Chart, Color, Data};
+use prettytable::Table;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use std::cmp::Ordering::Equal;
@@ -102,6 +104,9 @@ async fn main() -> web3::Result<()> {
         fill: random_char(),
     });
 
+    let mut table = Table::new();
+    table.add_row(row!["TOKEN", "CONTRACT ADDRESS", "TOKEN BALANCE", "TOTAL ETH", "TOTAL USD"]);
+
     for (token_symbol, values) in &list_erc20 {
         match values {
             Some(values) => {
@@ -113,14 +118,7 @@ async fn main() -> web3::Result<()> {
                     total_usd_balance += usd_balance;
                     total_eth_balance += eth_balance;
 
-                    println!(
-                        "{} {} {:.6} {:.6} Ξ / {:.2} US$",
-                        token_symbol,
-                        values.get("contract_address").unwrap(),
-                        balance,
-                        eth_balance,
-                        usd_balance
-                    );
+                    table.add_row(row![token_symbol, values.get("contract_address").unwrap(), format!("{:.6}", balance), format!("{:.6} Ξ", eth_balance), format!("{:.2} US$", usd_balance)]);
 
                     let mut rng = rand::thread_rng();
                     data.push(Data {
@@ -134,6 +132,8 @@ async fn main() -> web3::Result<()> {
             None => (),
         }
     }
+
+    table.printstd();
 
     data.sort_by(|a, b| b.value.partial_cmp(&a.value).unwrap_or(Equal));
 
