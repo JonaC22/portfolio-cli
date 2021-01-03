@@ -260,7 +260,7 @@ mod test {
         let balance = get_erc20_balance_for_account(
             test_account_address,
             &test_etherscan_api_key,
-            test_contract_address
+            test_contract_address,
         )
         .await;
         assert_ne!(balance, 0.0);
@@ -280,7 +280,7 @@ mod test {
         get_erc20_balance_for_account(
             test_account_address,
             &test_etherscan_api_key,
-            test_contract_address
+            test_contract_address,
         )
         .await;
     }
