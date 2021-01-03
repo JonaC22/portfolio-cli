@@ -12,7 +12,7 @@ use web3::types::H160;
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
 
-async fn get_coingecko_token_id_from_contract_address(contract_address: &str) -> String {
+async fn get_coingecko_token_id_from_contract_address(contract_address: &str, verbose : bool) -> String {
     let url = format!(
         "https://api.coingecko.com/api/v3/coins/ethereum/contract/{}",
         contract_address
@@ -40,10 +40,12 @@ async fn get_coingecko_token_id_from_contract_address(contract_address: &str) ->
                     panic!("Could not fetch from coingecko: response body: {:?}", &body);
                 } else {
                     retry += 1;
-                    println!(
-                        "Failed to fetch from coingecko, retry up to {}, retry number: {}",
-                        max_retries, retry
-                    );
+                    if verbose {
+                        println!(
+                            "Failed to fetch from coingecko, retry up to {}, retry number: {}",
+                            max_retries, retry
+                        );
+                    }
                     sleep(Duration::from_millis((2_u32.pow(retry) * 1000).into()));
                 }
             }
@@ -51,13 +53,13 @@ async fn get_coingecko_token_id_from_contract_address(contract_address: &str) ->
     }
 }
 
-pub async fn get_token_price(contract_address: &str, versus_name: &str) -> f64 {
+pub async fn get_token_price(contract_address: &str, versus_name: &str, verbose : bool) -> f64 {
     let token_id: String;
 
     if contract_address == "ethereum" {
         token_id = "ethereum".to_string();
     } else {
-        token_id = get_coingecko_token_id_from_contract_address(contract_address).await;
+        token_id = get_coingecko_token_id_from_contract_address(contract_address, verbose).await;
     }
 
     let url = format!(
@@ -87,10 +89,12 @@ pub async fn get_token_price(contract_address: &str, versus_name: &str) -> f64 {
                     panic!("Could not fetch from coingecko: response body: {:?}", &body);
                 } else {
                     retry += 1;
-                    println!(
-                        "Failed to fetch from coingecko, retry up to {}, retry number: {}",
-                        max_retries, retry
-                    );
+                    if verbose {
+                        println!(
+                            "Failed to fetch from coingecko, retry up to {}, retry number: {}",
+                            max_retries, retry
+                        );
+                    }
                     sleep(Duration::from_millis((2_u32.pow(retry) * 1000).into()));
                 }
             }
@@ -101,7 +105,7 @@ pub async fn get_token_price(contract_address: &str, versus_name: &str) -> f64 {
 pub async fn get_erc20_balance_for_account(
     account_address: H160,
     etherscan_api_key: &str,
-    contract_address: &str,
+    contract_address: &str
 ) -> f64 {
     let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
@@ -124,7 +128,7 @@ pub async fn get_erc20_balance_for_account(
     }
 }
 
-pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &str) -> Tokens {
+pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &str, verbose : bool) -> Tokens {
     let url = format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock=0&endblock=999999999&sort=asc&apikey={}", account_address, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: Value = serde_json::from_str(&body).unwrap();
@@ -160,20 +164,20 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
                             etherscan_api_key,
-                            contract_address,
+                            contract_address
                         )
                         .await;
 
                         values.insert("contract_address", contract_address.to_string());
                         values.insert("balance", balance.to_string());
 
-                        let token_usd_price_future = get_token_price(contract_address, "usd");
+                        let token_usd_price_future = get_token_price(contract_address, "usd", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
-                        let token_eth_price_future = get_token_price(contract_address, "eth");
+                        let token_eth_price_future = get_token_price(contract_address, "eth", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
@@ -208,7 +212,7 @@ mod test {
     async fn get_token_id_success() {
         // YFI token address
         let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
-        let id = get_coingecko_token_id_from_contract_address(erc20_contract_address).await;
+        let id = get_coingecko_token_id_from_contract_address(erc20_contract_address, true).await;
         assert_eq!(id, "yearn-finance");
     }
 
@@ -216,7 +220,7 @@ mod test {
     async fn get_token_id_fail() {
         // non existent token address
         let erc20_contract_address = "0x0121212121212121212121212212121212121212";
-        let id = get_coingecko_token_id_from_contract_address(erc20_contract_address).await;
+        let id = get_coingecko_token_id_from_contract_address(erc20_contract_address, true).await;
         assert_eq!(id, "");
     }
 
@@ -224,13 +228,13 @@ mod test {
     async fn get_token_price_success() {
         // YFI token address
         let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
-        let price = get_token_price(erc20_contract_address, "usd").await;
+        let price = get_token_price(erc20_contract_address, "usd", true).await;
         assert_ne!(price, 0.0);
     }
 
     #[tokio::test]
     async fn get_token_price_fail() {
-        let price = get_token_price("nonexistingtoken", "usd").await;
+        let price = get_token_price("nonexistingtoken", "usd", true).await;
         assert_eq!(price, 0.0);
     }
 
@@ -248,6 +252,7 @@ mod test {
             test_account_address,
             &test_etherscan_api_key,
             test_contract_address,
+            true
         )
         .await;
         assert_ne!(balance, 0.0);
@@ -268,6 +273,7 @@ mod test {
             test_account_address,
             &test_etherscan_api_key,
             test_contract_address,
+            true
         )
         .await;
     }

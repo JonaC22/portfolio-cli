@@ -18,7 +18,7 @@ fn random_char() -> char {
 
 #[tokio::main]
 async fn main() -> web3::Result<()> {
-    let matches = App::new("portfolio-cli")
+    let app = App::new("portfolio-cli")
         .version("0.1.0")
         .author("Jonathan <JonaC22@users.noreply.github.com>")
         .about("Track balance of ETH and ERC20 tokens easily from cli")
@@ -54,11 +54,11 @@ async fn main() -> web3::Result<()> {
     let transport = web3::transports::Http::new(&endpoint)?;
     let web3 = web3::Web3::new(transport);
 
-    let verbose: bool = matches.is_present("verbose");
+    let verbose: bool = app.is_present("verbose");
 
     let address;
 
-    match matches.value_of("address") {
+    match app.value_of("address") {
         None => panic!("No address specified, exit."),
         Some(r) => {
             let mut raw_address = r;
@@ -77,10 +77,12 @@ async fn main() -> web3::Result<()> {
         }
     }
 
-    println!("Calling balance...");
+    if verbose {
+        println!("Calling balance...");
+    }
     let balance = web3.eth().balance(address, None).await?.low_u64();
     let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
-    let eth_balance_vs_usd = eth_balance * erc20::get_token_price("ethereum", "usd").await;
+    let eth_balance_vs_usd = eth_balance * erc20::get_token_price("ethereum", "usd", verbose).await;
     println!(
         "ETH balance of {:?}: {:.6} Ξ / {:.2} US$",
         address, eth_balance, eth_balance_vs_usd
@@ -88,7 +90,7 @@ async fn main() -> web3::Result<()> {
 
     println!("Loading ERC20 token transactions, this will take a while...");
 
-    let list_erc20 = erc20::list_erc20_for_account(address, &etherscan_key).await;
+    let list_erc20 = erc20::list_erc20_for_account(address, &etherscan_key, verbose).await;
 
     println!("Balance of ERC20 tokens:");
 
