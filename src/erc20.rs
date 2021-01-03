@@ -12,7 +12,10 @@ use web3::types::H160;
 type TokenInfo = HashMap<&'static str, String>;
 type Tokens = HashMap<String, Option<TokenInfo>>;
 
-async fn get_coingecko_token_id_from_contract_address(contract_address: &str, verbose : bool) -> String {
+async fn get_coingecko_token_id_from_contract_address(
+    contract_address: &str,
+    verbose: bool,
+) -> String {
     let url = format!(
         "https://api.coingecko.com/api/v3/coins/ethereum/contract/{}",
         contract_address
@@ -53,7 +56,7 @@ async fn get_coingecko_token_id_from_contract_address(contract_address: &str, ve
     }
 }
 
-pub async fn get_token_price(contract_address: &str, versus_name: &str, verbose : bool) -> f64 {
+pub async fn get_token_price(contract_address: &str, versus_name: &str, verbose: bool) -> f64 {
     let token_id: String;
 
     if contract_address == "ethereum" {
@@ -105,7 +108,7 @@ pub async fn get_token_price(contract_address: &str, versus_name: &str, verbose 
 pub async fn get_erc20_balance_for_account(
     account_address: H160,
     etherscan_api_key: &str,
-    contract_address: &str
+    contract_address: &str,
 ) -> f64 {
     let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
@@ -128,7 +131,11 @@ pub async fn get_erc20_balance_for_account(
     }
 }
 
-pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &str, verbose : bool) -> Tokens {
+pub async fn list_erc20_for_account(
+    account_address: H160,
+    etherscan_api_key: &str,
+    verbose: bool,
+) -> Tokens {
     let url = format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock=0&endblock=999999999&sort=asc&apikey={}", account_address, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: Value = serde_json::from_str(&body).unwrap();
@@ -164,20 +171,22 @@ pub async fn list_erc20_for_account(account_address: H160, etherscan_api_key: &s
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
                             etherscan_api_key,
-                            contract_address
+                            contract_address,
                         )
                         .await;
 
                         values.insert("contract_address", contract_address.to_string());
                         values.insert("balance", balance.to_string());
 
-                        let token_usd_price_future = get_token_price(contract_address, "usd", verbose);
+                        let token_usd_price_future =
+                            get_token_price(contract_address, "usd", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
-                        let token_eth_price_future = get_token_price(contract_address, "eth", verbose);
+                        let token_eth_price_future =
+                            get_token_price(contract_address, "eth", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
@@ -252,7 +261,7 @@ mod test {
             test_account_address,
             &test_etherscan_api_key,
             test_contract_address,
-            true
+            true,
         )
         .await;
         assert_ne!(balance, 0.0);
@@ -273,7 +282,7 @@ mod test {
             test_account_address,
             &test_etherscan_api_key,
             test_contract_address,
-            true
+            true,
         )
         .await;
     }
