@@ -1,6 +1,6 @@
 [package]
 name = "portfolio-cli"
-version = "1.0.0"
+version = "0.1.0"
 authors = ["Jonathan <JonaC22@users.noreply.github.com>"]
 edition = "2018"
 
