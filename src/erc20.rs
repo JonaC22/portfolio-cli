@@ -56,15 +56,7 @@ async fn get_coingecko_token_id_from_contract_address(
     }
 }
 
-pub async fn get_token_price(contract_address: &str, versus_name: &str, verbose: bool) -> f64 {
-    let token_id: String;
-
-    if contract_address == "ethereum" {
-        token_id = "ethereum".to_string();
-    } else {
-        token_id = get_coingecko_token_id_from_contract_address(contract_address, verbose).await;
-    }
-
+pub async fn get_token_price(token_id: &str, versus_name: &str, verbose: bool) -> f64 {
     let url = format!(
         "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies={}",
         token_id, versus_name
@@ -166,8 +158,12 @@ pub async fn list_erc20_for_account(
                 match tokens.get(&token_symbol) {
                     None => {
                         let mut values: TokenInfo = HashMap::new();
+
                         let contract_address: &str =
                             entry.get("contractAddress").unwrap().as_str().unwrap();
+
+                        let token_id : String = get_coingecko_token_id_from_contract_address(contract_address, verbose).await;
+
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
                             etherscan_api_key,
@@ -179,7 +175,7 @@ pub async fn list_erc20_for_account(
                         values.insert("balance", balance.to_string());
 
                         let token_usd_price_future =
-                            get_token_price(contract_address, "usd", verbose);
+                            get_token_price(&token_id, "usd", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
@@ -235,9 +231,8 @@ mod test {
 
     #[tokio::test]
     async fn get_token_price_success() {
-        // YFI token address
-        let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
-        let price = get_token_price(erc20_contract_address, "usd", true).await;
+        let erc20_token_id= "yearn-finance";
+        let price = get_token_price(erc20_token_id, "usd", true).await;
         assert_ne!(price, 0.0);
     }
 
