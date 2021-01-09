@@ -113,7 +113,8 @@ async fn main() -> web3::Result<()> {
         "CONTRACT ADDRESS",
         "TOKEN BALANCE",
         "TOTAL ETH",
-        "TOTAL USD"
+        "TOTAL USD",
+        "COINGECKO LINK"
     ]);
 
     for (token_symbol, values) in &list_erc20 {
@@ -122,6 +123,7 @@ async fn main() -> web3::Result<()> {
                 let balance: f64 = values.get("balance").unwrap().parse::<f64>().unwrap();
                 let usd_balance: f64 = values.get("usd_balance").unwrap().parse::<f64>().unwrap();
                 let eth_balance: f64 = values.get("eth_balance").unwrap().parse::<f64>().unwrap();
+                let coingecko_link: String = values.get("coingecko_link").unwrap().to_string();
 
                 if usd_balance >= 0.01 {
                     total_usd_balance += usd_balance;
@@ -132,7 +134,8 @@ async fn main() -> web3::Result<()> {
                         values.get("contract_address").unwrap(),
                         format!("{:.6}", balance),
                         format!("{:.6} Ξ", eth_balance),
-                        format!("{:.2} US$", usd_balance)
+                        format!("{:.2} US$", usd_balance),
+                        format!("{}", coingecko_link)
                     ]);
 
                     let mut rng = rand::thread_rng();
