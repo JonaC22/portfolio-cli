@@ -196,7 +196,10 @@ pub async fn list_erc20_for_account(
                         values.insert("eth_price", token_eth_price.to_string());
                         values.insert("usd_balance", (balance * token_usd_price).to_string());
                         values.insert("eth_balance", (balance * token_eth_price).to_string());
-                        values.insert("coingecko_link", format!("https://coingecko.com/en/coins/{}", token_id));
+                        values.insert(
+                            "coingecko_link",
+                            format!("https://coingecko.com/en/coins/{}", token_id),
+                        );
                         tokens.insert(token_symbol, Some(values));
                     }
                     _ => continue,
