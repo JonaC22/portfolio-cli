@@ -162,7 +162,9 @@ pub async fn list_erc20_for_account(
                         let contract_address: &str =
                             entry.get("contractAddress").unwrap().as_str().unwrap();
 
-                        let token_id : String = get_coingecko_token_id_from_contract_address(contract_address, verbose).await;
+                        let token_id: String =
+                            get_coingecko_token_id_from_contract_address(contract_address, verbose)
+                                .await;
 
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
@@ -174,8 +176,7 @@ pub async fn list_erc20_for_account(
                         values.insert("contract_address", contract_address.to_string());
                         values.insert("balance", balance.to_string());
 
-                        let token_usd_price_future =
-                            get_token_price(&token_id, "usd", verbose);
+                        let token_usd_price_future = get_token_price(&token_id, "usd", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
@@ -231,7 +232,7 @@ mod test {
 
     #[tokio::test]
     async fn get_token_price_success() {
-        let erc20_token_id= "yearn-finance";
+        let erc20_token_id = "yearn-finance";
         let price = get_token_price(erc20_token_id, "usd", true).await;
         assert_ne!(price, 0.0);
     }
