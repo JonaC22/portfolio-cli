@@ -182,8 +182,7 @@ pub async fn list_erc20_for_account(
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
-                        let token_eth_price_future =
-                            get_token_price(&token_id, "eth", verbose);
+                        let token_eth_price_future = get_token_price(&token_id, "eth", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
