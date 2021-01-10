@@ -83,10 +83,13 @@ async fn main() -> web3::Result<()> {
     let balance = web3.eth().balance(address, None).await?.low_u64();
     let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
     let eth_balance_vs_usd = eth_balance * erc20::get_token_price("ethereum", "usd", verbose).await;
-    println!(
-        "ETH balance of {:?}: {:.6} Ξ / {:.2} US$",
-        address, eth_balance, eth_balance_vs_usd
-    );
+
+    if verbose {
+        println!(
+            "ETH balance of {:?}: {:.6} Ξ / {:.2} US$",
+            address, eth_balance, eth_balance_vs_usd
+        );
+    }
 
     println!("Loading ERC20 token transactions, this will take a while...");
 
@@ -115,6 +118,15 @@ async fn main() -> web3::Result<()> {
         "TOTAL ETH",
         "TOTAL USD",
         "COINGECKO LINK"
+    ]);
+
+    table.add_row(row![
+        "ETH",
+        "",
+        format!("{:.6}", eth_balance),
+        format!("{:.6} Ξ", eth_balance),
+        format!("{:.2} US$", eth_balance_vs_usd),
+        format!("{}", "https://coingecko.com/en/coins/ethereum")
     ]);
 
     for (token_symbol, values) in &list_erc20 {
@@ -151,6 +163,15 @@ async fn main() -> web3::Result<()> {
         }
     }
 
+    table.add_row(row![
+        "TOTAL",
+        "",
+        "",
+        format!("{:.6} Ξ", total_eth_balance),
+        format!("{:.2} US$", total_usd_balance),
+        ""
+    ]);
+
     table.printstd();
 
     data.sort_by(|a, b| b.value.partial_cmp(&a.value).unwrap_or(Equal));
@@ -160,12 +181,6 @@ async fn main() -> web3::Result<()> {
         .aspect_ratio(4)
         .legend(true)
         .draw(&data);
-
-    println!("-----------------------------------------");
-    println!(
-        "Total balance: {:.6} Ξ / {:.2} US$",
-        total_eth_balance, total_usd_balance
-    );
 
     Ok(())
 }
