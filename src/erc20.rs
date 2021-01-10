@@ -183,7 +183,7 @@ pub async fn list_erc20_for_account(
                         }
 
                         let token_eth_price_future =
-                            get_token_price(contract_address, "eth", verbose);
+                            get_token_price(&token_id, "eth", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
@@ -238,13 +238,17 @@ mod test {
     async fn get_token_price_success() {
         let erc20_token_id = "yearn-finance";
         let price = get_token_price(erc20_token_id, "usd", true).await;
+        let price_eth = get_token_price(erc20_token_id, "eth", true).await;
         assert_ne!(price, 0.0);
+        assert_ne!(price_eth, 0.0);
     }
 
     #[tokio::test]
     async fn get_token_price_fail() {
         let price = get_token_price("nonexistingtoken", "usd", true).await;
+        let price_eth = get_token_price("nonexistingtoken", "eth", true).await;
         assert_eq!(price, 0.0);
+        assert_eq!(price_eth, 0.0);
     }
 
     #[tokio::test]
