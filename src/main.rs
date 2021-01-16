@@ -137,27 +137,25 @@ async fn main() -> web3::Result<()> {
                 let eth_balance: f64 = values.get("eth_balance").unwrap().parse::<f64>().unwrap();
                 let coingecko_link: String = values.get("coingecko_link").unwrap().to_string();
 
-                if usd_balance >= 0.01 {
-                    total_usd_balance += usd_balance;
-                    total_eth_balance += eth_balance;
+                total_usd_balance += usd_balance;
+                total_eth_balance += eth_balance;
 
-                    table.add_row(row![
-                        token_symbol,
-                        values.get("contract_address").unwrap(),
-                        format!("{:.6}", balance),
-                        format!("{:.6} Ξ", eth_balance),
-                        format!("{:.2} US$", usd_balance),
-                        format!("{}", coingecko_link)
-                    ]);
+                table.add_row(row![
+                    token_symbol,
+                    values.get("contract_address").unwrap(),
+                    format!("{:.6}", balance),
+                    format!("{:.6} Ξ", eth_balance),
+                    format!("{:.2} US$", usd_balance),
+                    format!("{}", coingecko_link)
+                ]);
 
-                    let mut rng = rand::thread_rng();
-                    data.push(Data {
-                        label: token_symbol.into(),
-                        value: usd_balance as f32,
-                        color: Some(Color::Fixed(rng.gen_range(0..255))),
-                        fill: random_char(),
-                    });
-                }
+                let mut rng = rand::thread_rng();
+                data.push(Data {
+                    label: token_symbol.into(),
+                    value: usd_balance as f32,
+                    color: Some(Color::Fixed(rng.gen_range(0..255))),
+                    fill: random_char(),
+                });
             }
             None => (),
         }
