@@ -97,22 +97,30 @@ pub async fn get_token_price(token_id: &str, versus_name: &str, verbose: bool) -
     }
 }
 
-pub async fn get_token_decimal(
-    ethplorer_api_key: &str,
-    contract_address: &str
-) -> u32 {
-    let url = format!("https://api.ethplorer.io/getTokenInfo/{}?apiKey={}
-    ", contract_address, ethplorer_api_key);
+pub async fn get_token_decimal(ethplorer_api_key: &str, contract_address: &str) -> u32 {
+    let url = format!(
+        "https://api.ethplorer.io/getTokenInfo/{}?apiKey={}
+    ",
+        contract_address, ethplorer_api_key
+    );
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: Value = serde_json::from_str(&body).unwrap();
     let mix_selector = Some(r#""decimals""#);
 
-    let results = jql::walker(&json, mix_selector).unwrap_or_else(|_| panic!("Error on fetching decimals for token contract {}", contract_address));
+    let results = jql::walker(&json, mix_selector).unwrap_or_else(|_| {
+        panic!(
+            "Error on fetching decimals for token contract {}",
+            contract_address
+        )
+    });
 
     match results {
         Value::String(value) => value.parse::<u32>().unwrap(),
         Value::Number(value) => value.to_string().parse::<u32>().unwrap(),
-        _ => panic!("Error on fetching decimals for token contract {}", contract_address),
+        _ => panic!(
+            "Error on fetching decimals for token contract {}",
+            contract_address
+        ),
     }
 }
 
@@ -270,7 +278,9 @@ mod test {
         assert_eq!(decimal, 18);
     }
 
-    #[should_panic(expected = "Error on fetching decimals for token contract 0x0121212121212121212121212212121212121212")]
+    #[should_panic(
+        expected = "Error on fetching decimals for token contract 0x0121212121212121212121212212121212121212"
+    )]
     #[tokio::test]
     async fn get_token_decimal_fail() {
         // non existent token address
@@ -282,7 +292,6 @@ mod test {
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
         get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await;
     }
-
 
     #[tokio::test]
     async fn get_token_price_success() {

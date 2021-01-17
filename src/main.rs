@@ -96,7 +96,8 @@ async fn main() -> web3::Result<()> {
 
     println!("Loading ERC20 token transactions, this will take a while...");
 
-    let list_erc20 = erc20::list_erc20_for_account(address, &etherscan_key, &ethplorer_key, verbose).await;
+    let list_erc20 =
+        erc20::list_erc20_for_account(address, &etherscan_key, &ethplorer_key, verbose).await;
 
     println!("Balance of ERC20 tokens:");
 
