@@ -49,6 +49,9 @@ async fn main() -> web3::Result<()> {
     let etherscan_key = settings
         .get::<String>("etherscan")
         .unwrap_or_else(|_| panic!("etherscan key is not set in Settings.toml, exit."));
+    let ethplorer_key = settings
+        .get::<String>("ethplorer")
+        .unwrap_or_else(|_| panic!("ethplorer key is not set in Settings.toml, exit."));
 
     let endpoint = format!("https://mainnet.infura.io/v3/{}", infura_key);
     let transport = web3::transports::Http::new(&endpoint)?;
@@ -93,7 +96,7 @@ async fn main() -> web3::Result<()> {
 
     println!("Loading ERC20 token transactions, this will take a while...");
 
-    let list_erc20 = erc20::list_erc20_for_account(address, &etherscan_key, verbose).await;
+    let list_erc20 = erc20::list_erc20_for_account(address, &etherscan_key, &ethplorer_key, verbose).await;
 
     println!("Balance of ERC20 tokens:");
 

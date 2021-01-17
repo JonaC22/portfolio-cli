@@ -97,9 +97,29 @@ pub async fn get_token_price(token_id: &str, versus_name: &str, verbose: bool) -
     }
 }
 
+pub async fn get_token_decimal(
+    ethplorer_api_key: &str,
+    contract_address: &str
+) -> u32 {
+    let url = format!("https://api.ethplorer.io/getTokenInfo/{}?apiKey={}
+    ", contract_address, ethplorer_api_key);
+    let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
+    let json: Value = serde_json::from_str(&body).unwrap();
+    let mix_selector = Some(r#""decimals""#);
+
+    let results = jql::walker(&json, mix_selector).unwrap_or_else(|_| panic!("Error on fetching decimals for token contract {}", contract_address));
+
+    match results {
+        Value::String(value) => value.parse::<u32>().unwrap(),
+        Value::Number(value) => value.to_string().parse::<u32>().unwrap(),
+        _ => panic!("Error on fetching decimals for token contract {}", contract_address),
+    }
+}
+
 pub async fn get_erc20_balance_for_account(
     account_address: H160,
     etherscan_api_key: &str,
+    ethplorer_api_key: &str,
     contract_address: &str,
 ) -> f64 {
     let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
@@ -117,8 +137,10 @@ pub async fn get_erc20_balance_for_account(
 
     let results = jql::walker(&json, mix_selector).unwrap();
 
+    let decimal = get_token_decimal(ethplorer_api_key, contract_address).await;
+
     match results {
-        Value::String(value) => value.parse::<f64>().unwrap() / 10_u64.pow(18) as f64,
+        Value::String(value) => value.parse::<f64>().unwrap() / 10_u64.pow(decimal) as f64,
         _ => panic!("Error on processing ERC20 balance for {}", contract_address),
     }
 }
@@ -126,6 +148,7 @@ pub async fn get_erc20_balance_for_account(
 pub async fn list_erc20_for_account(
     account_address: H160,
     etherscan_api_key: &str,
+    ethplorer_api_key: &str,
     verbose: bool,
 ) -> Tokens {
     let url = format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock=0&endblock=999999999&sort=asc&apikey={}", account_address, etherscan_api_key);
@@ -169,6 +192,7 @@ pub async fn list_erc20_for_account(
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
                             etherscan_api_key,
+                            ethplorer_api_key,
                             contract_address,
                         )
                         .await;
@@ -234,6 +258,33 @@ mod test {
     }
 
     #[tokio::test]
+    async fn get_token_decimal_success() {
+        // YFI token address
+        let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
+        let mut settings = config::Config::default();
+        settings.merge(config::File::with_name("Settings")).unwrap();
+        let test_ethplorer_api_key = settings
+            .get::<String>("test_ethplorer")
+            .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
+        let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await;
+        assert_eq!(decimal, 18);
+    }
+
+    #[should_panic(expected = "Error on fetching decimals for token contract 0x0121212121212121212121212212121212121212")]
+    #[tokio::test]
+    async fn get_token_decimal_fail() {
+        // non existent token address
+        let erc20_contract_address = "0x0121212121212121212121212212121212121212";
+        let mut settings = config::Config::default();
+        settings.merge(config::File::with_name("Settings")).unwrap();
+        let test_ethplorer_api_key = settings
+            .get::<String>("test_ethplorer")
+            .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
+        get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await;
+    }
+
+
+    #[tokio::test]
     async fn get_token_price_success() {
         let erc20_token_id = "yearn-finance";
         let price = get_token_price(erc20_token_id, "usd", true).await;
@@ -260,9 +311,13 @@ mod test {
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
             .unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
+        let test_ethplorer_api_key = settings
+            .get::<String>("test_ethplorer")
+            .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
         let balance = get_erc20_balance_for_account(
             test_account_address,
             &test_etherscan_api_key,
+            &test_ethplorer_api_key,
             test_contract_address,
         )
         .await;
@@ -280,9 +335,13 @@ mod test {
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
             .unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
+        let test_ethplorer_api_key = settings
+            .get::<String>("test_ethplorer")
+            .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
         get_erc20_balance_for_account(
             test_account_address,
             &test_etherscan_api_key,
+            &test_ethplorer_api_key,
             test_contract_address,
         )
         .await;
