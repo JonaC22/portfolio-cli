@@ -19,7 +19,7 @@ You will need some libs installed in your OS (Tested on Ubuntu 20.04):
 ### Usage
 
 - Clone the repository
-- You need a `Settings.toml` file in the root directory with an [Infura API key](https://infura.io/docs/gettingStarted/authentication) and [Etherscan API key](https://info.etherscan.com/etherscan-developer-api-key/) with this format:
+- You need a `Settings.toml` file in the root directory with an [Infura API key](https://infura.io/docs/gettingStarted/authentication), [Etherscan API key](https://info.etherscan.com/etherscan-developer-api-key/), and [Ethplorer API key](https://github.com/EverexIO/Ethplorer/wiki/ethplorer-api) with this format:
 
 ```
 infura = <infura-api-key>
@@ -35,11 +35,12 @@ $ cargo run <wallet-address>
 
 ### Testing
 
-- For testing, you will need an etherscan api key suitable for that, add it to `Settings.toml`:
+- For testing, you will need the api keys suitable for that, add it to `Settings.toml`:
 
 ```
 ...
 test_etherscan = <etherscan-api-key>
+test_ethplorer = <ethplorer-api-key>
 ```
 
 - Then run:
