@@ -12,3 +12,6 @@ Cargo.lock
 
 # Config file
 Settings.toml
+
+# Database directory
+portfolio-cli-db/
