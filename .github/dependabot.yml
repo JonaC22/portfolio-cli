@@ -18,3 +18,12 @@ updates:
       - "JonaC22"
     default_assignees:
       - "JonaC22"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    default_reviewers:
+      - "JonaC22"
+    default_assignees:
+      - "JonaC22"
