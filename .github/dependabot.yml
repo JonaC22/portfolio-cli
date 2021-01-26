@@ -5,25 +5,25 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    default_reviewers:
+    reviewers:
       - "JonaC22"
-    default_assignees:
+    assignees:
       - "JonaC22"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
-    default_reviewers:
+    reviewers:
       - "JonaC22"
-    default_assignees:
+    assignees:
       - "JonaC22"
 
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
-    default_reviewers:
+    reviewers:
       - "JonaC22"
-    default_assignees:
+    assignees:
       - "JonaC22"
