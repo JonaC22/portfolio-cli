@@ -4,9 +4,17 @@ updates:
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    default_reviewers:
+      - "JonaC22"
+    default_assignees:
+      - "JonaC22"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
+    default_reviewers:
+      - "JonaC22"
+    default_assignees:
+      - "JonaC22"
