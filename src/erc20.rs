@@ -17,7 +17,7 @@ pub struct TokenInfo {
     pub eth_price: f64,
     pub usd_balance: f64,
     pub eth_balance: f64,
-    pub coingecko_link: String
+    pub coingecko_link: String,
 }
 
 type Tokens = HashMap<String, Option<TokenInfo>>;
@@ -235,7 +235,7 @@ pub async fn list_erc20_for_account(
                             eth_price: token_eth_price,
                             usd_balance: balance * token_usd_price,
                             eth_balance: balance * token_eth_price,
-                            coingecko_link: format!("https://coingecko.com/en/coins/{}", token_id)
+                            coingecko_link: format!("https://coingecko.com/en/coins/{}", token_id),
                         };
 
                         tokens.insert(token_symbol, Some(token_info));
