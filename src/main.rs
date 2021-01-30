@@ -136,10 +136,10 @@ async fn main() -> web3::Result<()> {
     for (token_symbol, values) in &list_erc20 {
         match values {
             Some(values) => {
-                let balance: f64 = values.get("balance").unwrap().parse::<f64>().unwrap();
-                let usd_balance: f64 = values.get("usd_balance").unwrap().parse::<f64>().unwrap();
-                let eth_balance: f64 = values.get("eth_balance").unwrap().parse::<f64>().unwrap();
-                let coingecko_link: String = values.get("coingecko_link").unwrap().to_string();
+                let balance: f64 = values.balance;
+                let usd_balance: f64 = values.usd_balance;
+                let eth_balance: f64 = values.eth_balance;
+                let coingecko_link: &String = &values.coingecko_link;
 
                 if usd_balance >= 0.01 {
                     total_usd_balance += usd_balance;
@@ -147,7 +147,7 @@ async fn main() -> web3::Result<()> {
 
                     table.add_row(row![
                         token_symbol,
-                        values.get("contract_address").unwrap(),
+                        values.contract_address,
                         format!("{:.6}", balance),
                         format!("{:.6} Ξ", eth_balance),
                         format!("{:.2} US$", usd_balance),

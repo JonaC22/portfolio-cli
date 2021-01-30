@@ -9,7 +9,17 @@ use std::thread::sleep;
 use std::time::Duration;
 use web3::types::H160;
 
-type TokenInfo = HashMap<&'static str, String>;
+#[derive(Debug)]
+pub struct TokenInfo {
+    pub contract_address: String,
+    pub balance: f64,
+    pub usd_price: f64,
+    pub eth_price: f64,
+    pub usd_balance: f64,
+    pub eth_balance: f64,
+    pub coingecko_link: String
+}
+
 type Tokens = HashMap<String, Option<TokenInfo>>;
 
 async fn get_coingecko_token_id_from_contract_address(
@@ -188,8 +198,6 @@ pub async fn list_erc20_for_account(
 
                 match tokens.get(&token_symbol) {
                     None => {
-                        let mut values: TokenInfo = HashMap::new();
-
                         let contract_address: &str =
                             entry.get("contractAddress").unwrap().as_str().unwrap();
 
@@ -204,9 +212,6 @@ pub async fn list_erc20_for_account(
                             contract_address,
                         )
                         .await;
-
-                        values.insert("contract_address", contract_address.to_string());
-                        values.insert("balance", balance.to_string());
 
                         let token_usd_price_future = get_token_price(&token_id, "usd", verbose);
                         match limiter.check() {
@@ -223,15 +228,17 @@ pub async fn list_erc20_for_account(
                         let token_usd_price = token_usd_price_future.await;
                         let token_eth_price = token_eth_price_future.await;
 
-                        values.insert("usd_price", token_usd_price.to_string());
-                        values.insert("eth_price", token_eth_price.to_string());
-                        values.insert("usd_balance", (balance * token_usd_price).to_string());
-                        values.insert("eth_balance", (balance * token_eth_price).to_string());
-                        values.insert(
-                            "coingecko_link",
-                            format!("https://coingecko.com/en/coins/{}", token_id),
-                        );
-                        tokens.insert(token_symbol, Some(values));
+                        let token_info = TokenInfo {
+                            contract_address: contract_address.to_string(),
+                            balance: balance,
+                            usd_price: token_usd_price,
+                            eth_price: token_eth_price,
+                            usd_balance: balance * token_usd_price,
+                            eth_balance: balance * token_eth_price,
+                            coingecko_link: format!("https://coingecko.com/en/coins/{}", token_id)
+                        };
+
+                        tokens.insert(token_symbol, Some(token_info));
                     }
                     _ => continue,
                 }
