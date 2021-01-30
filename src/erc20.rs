@@ -44,7 +44,7 @@ async fn get_coingecko_token_id_from_contract_address(
                 let results = jql::walker(&json, mix_selector).unwrap_or_default();
 
                 match results {
-                    Value::String(value) => return value.to_string().parse::<String>().unwrap(),
+                    Value::String(value) => return value.parse::<String>().unwrap(),
                     _ => return "".to_string(),
                 }
             }
@@ -225,16 +225,16 @@ pub async fn list_erc20_for_account(
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
-                        let token_usd_price = token_usd_price_future.await;
-                        let token_eth_price = token_eth_price_future.await;
+                        let usd_price = token_usd_price_future.await;
+                        let eth_price = token_eth_price_future.await;
 
                         let token_info = TokenInfo {
                             contract_address: contract_address.to_string(),
-                            balance: balance,
-                            usd_price: token_usd_price,
-                            eth_price: token_eth_price,
-                            usd_balance: balance * token_usd_price,
-                            eth_balance: balance * token_eth_price,
+                            balance,
+                            usd_price,
+                            eth_price,
+                            usd_balance: balance * usd_price,
+                            eth_balance: balance * eth_price,
                             coingecko_link: format!("https://coingecko.com/en/coins/{}", token_id),
                         };
 

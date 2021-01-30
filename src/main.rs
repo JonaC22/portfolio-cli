@@ -65,8 +65,8 @@ async fn main() -> web3::Result<()> {
         None => panic!("No address specified, exit."),
         Some(r) => {
             let mut raw_address = r;
-            if r.starts_with("0x") {
-                raw_address = &r[2..];
+            if let Some(stripped) = r.strip_prefix("0x") {
+                raw_address = stripped;
             }
             match raw_address.parse::<web3::types::H160>() {
                 Ok(a) => {
@@ -130,7 +130,7 @@ async fn main() -> web3::Result<()> {
         format!("{:.6}", eth_balance),
         format!("{:.6} Ξ", eth_balance),
         format!("{:.2} US$", eth_balance_vs_usd),
-        format!("{}", "https://coingecko.com/en/coins/ethereum")
+        "https://coingecko.com/en/coins/ethereum".to_string()
     ]);
 
     for (token_symbol, values) in &list_erc20 {
@@ -151,7 +151,7 @@ async fn main() -> web3::Result<()> {
                         format!("{:.6}", balance),
                         format!("{:.6} Ξ", eth_balance),
                         format!("{:.2} US$", usd_balance),
-                        format!("{}", coingecko_link)
+                        coingecko_link.to_string()
                     ]);
 
                     let mut rng = rand::thread_rng();
