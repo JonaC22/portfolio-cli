@@ -20,6 +20,20 @@ pub struct TokenInfo {
     pub coingecko_link: String,
 }
 
+impl<'a> TokenInfo {
+    fn new(contract_address: &'a str, balance: &'a f64, usd_price: &'a f64, eth_price: &'a f64, coingecko_link: &'a str) -> TokenInfo {
+        TokenInfo {
+            contract_address: contract_address.to_string(),
+            balance: *balance,
+            usd_price: *usd_price,
+            eth_price: *eth_price,
+            usd_balance: balance * usd_price,
+            eth_balance: balance * eth_price,
+            coingecko_link: coingecko_link.to_string()
+        }
+    }
+}
+
 type Tokens = HashMap<String, Option<TokenInfo>>;
 
 async fn get_coingecko_token_id_from_contract_address(
@@ -228,15 +242,13 @@ pub async fn list_erc20_for_account(
                         let usd_price = token_usd_price_future.await;
                         let eth_price = token_eth_price_future.await;
 
-                        let token_info = TokenInfo {
-                            contract_address: contract_address.to_string(),
-                            balance,
-                            usd_price,
-                            eth_price,
-                            usd_balance: balance * usd_price,
-                            eth_balance: balance * eth_price,
-                            coingecko_link: format!("https://coingecko.com/en/coins/{}", token_id),
-                        };
+                        let token_info : TokenInfo = TokenInfo::new(
+                            contract_address,
+                            &balance,
+                            &usd_price,
+                            &eth_price,
+                            &format!("https://coingecko.com/en/coins/{}", token_id),
+                        );
 
                         tokens.insert(token_symbol, Some(token_info));
                     }
