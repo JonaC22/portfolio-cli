@@ -21,7 +21,13 @@ pub struct TokenInfo {
 }
 
 impl<'a> TokenInfo {
-    fn new(contract_address: &'a str, balance: &'a f64, usd_price: &'a f64, eth_price: &'a f64, coingecko_link: &'a str) -> TokenInfo {
+    fn new(
+        contract_address: &'a str,
+        balance: &'a f64,
+        usd_price: &'a f64,
+        eth_price: &'a f64,
+        coingecko_link: &'a str,
+    ) -> TokenInfo {
         TokenInfo {
             contract_address: contract_address.to_string(),
             balance: *balance,
@@ -29,7 +35,7 @@ impl<'a> TokenInfo {
             eth_price: *eth_price,
             usd_balance: balance * usd_price,
             eth_balance: balance * eth_price,
-            coingecko_link: coingecko_link.to_string()
+            coingecko_link: coingecko_link.to_string(),
         }
     }
 }
@@ -242,7 +248,7 @@ pub async fn list_erc20_for_account(
                         let usd_price = token_usd_price_future.await;
                         let eth_price = token_eth_price_future.await;
 
-                        let token_info : TokenInfo = TokenInfo::new(
+                        let token_info: TokenInfo = TokenInfo::new(
                             contract_address,
                             &balance,
                             &usd_price,
