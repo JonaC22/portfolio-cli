@@ -30,7 +30,12 @@ etherscan = <etherscan-api-key>
 
 ```
 $ cargo build
-$ cargo run <wallet-address>
+$ cargo run -a <wallet-address>
+```
+
+For more options run:
+```
+$ cargo run -h
 ```
 
 ### Testing
