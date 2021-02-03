@@ -33,7 +33,8 @@ $ cargo build
 $ cargo run -a <wallet-address>
 ```
 
-For more options run:
+- For more options run:
+
 ```
 $ cargo run -h
 ```
