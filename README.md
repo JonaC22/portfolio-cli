@@ -30,7 +30,13 @@ etherscan = <etherscan-api-key>
 
 ```
 $ cargo build
-$ cargo run -a <wallet-address>
+$ cargo run -- -a <wallet-address>
+```
+
+- Can also run verbose mode with:
+
+```
+$ cargo run -- -a <wallet-address> -v
 ```
 
 - For more options run:
