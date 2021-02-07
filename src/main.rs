@@ -1,4 +1,6 @@
-mod erc20;
+mod lib;
+
+use lib::{erc20, coingecko};
 
 #[macro_use]
 extern crate prettytable;
@@ -85,7 +87,7 @@ async fn main() -> web3::Result<()> {
     }
     let balance = web3.eth().balance(address, None).await?.low_u64();
     let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
-    let eth_balance_vs_usd = eth_balance * erc20::get_token_price("ethereum", "usd", verbose).await;
+    let eth_balance_vs_usd = eth_balance * coingecko::get_token_price("ethereum", "usd", verbose).await;
 
     if verbose {
         println!(
