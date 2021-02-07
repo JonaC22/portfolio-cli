@@ -2,10 +2,7 @@ use serde_json::{Error, Value};
 use std::thread::sleep;
 use std::time::Duration;
 
-pub async fn get_token_id_from_contract_address(
-    contract_address: &str,
-    verbose: bool,
-) -> String {
+pub async fn get_token_id_from_contract_address(contract_address: &str, verbose: bool) -> String {
     let url = format!(
         "https://api.coingecko.com/api/v3/coins/ethereum/contract/{}",
         contract_address

@@ -3,7 +3,7 @@ use super::coingecko;
 use governor::{Quota, RateLimiter};
 use indicatif::ProgressBar;
 use nonzero_ext::*;
-use serde_json::{Value};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::{self, Write};
@@ -138,9 +138,11 @@ pub async fn list_erc20_for_account(
                         let contract_address: &str =
                             entry.get("contractAddress").unwrap().as_str().unwrap();
 
-                        let token_id: String =
-                            coingecko::get_token_id_from_contract_address(contract_address, verbose)
-                                .await;
+                        let token_id: String = coingecko::get_token_id_from_contract_address(
+                            contract_address,
+                            verbose,
+                        )
+                        .await;
 
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
@@ -150,13 +152,15 @@ pub async fn list_erc20_for_account(
                         )
                         .await;
 
-                        let token_usd_price_future = coingecko::get_token_price(&token_id, "usd", verbose);
+                        let token_usd_price_future =
+                            coingecko::get_token_price(&token_id, "usd", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
-                        let token_eth_price_future = coingecko::get_token_price(&token_id, "eth", verbose);
+                        let token_eth_price_future =
+                            coingecko::get_token_price(&token_id, "eth", verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
