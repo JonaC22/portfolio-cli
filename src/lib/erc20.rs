@@ -106,7 +106,7 @@ pub async fn list_erc20_for_account(
     ethplorer_api_key: &str,
     startblock: Option<i32>,
     endblock: Option<i32>,
-    verbose: bool
+    verbose: bool,
 ) -> Tokens {
     let mut startblock_number = 0;
     if let Some(n) = startblock {
@@ -293,17 +293,25 @@ mod test {
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
 
-        let list_erc20 =
-            list_erc20_for_account(test_account_address, &test_etherscan_api_key, &test_ethplorer_api_key, Some(11855520), Some(11855590), false).await;
+        let list_erc20 = list_erc20_for_account(
+            test_account_address,
+            &test_etherscan_api_key,
+            &test_ethplorer_api_key,
+            Some(11855520),
+            Some(11855590),
+            false,
+        )
+        .await;
 
-            assert_eq!(list_erc20.len(), 2);
+        assert_eq!(list_erc20.len(), 2);
     }
 
     #[should_panic(expected = "Error on processing the list of ERC20 tokens")]
     #[tokio::test]
     async fn list_erc20_for_account_fail() {
-        let test_account_address: H160 =
-            "0x0121212121212121212121212212121212121212".parse().unwrap();
+        let test_account_address: H160 = "0x0121212121212121212121212212121212121212"
+            .parse()
+            .unwrap();
         let mut settings = config::Config::default();
         settings.merge(config::File::with_name("Settings")).unwrap();
         let test_etherscan_api_key = settings
@@ -313,6 +321,14 @@ mod test {
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
 
-        list_erc20_for_account(test_account_address, &test_etherscan_api_key, &test_ethplorer_api_key, Some(11855520), Some(11855590), false).await;
+        list_erc20_for_account(
+            test_account_address,
+            &test_etherscan_api_key,
+            &test_ethplorer_api_key,
+            Some(11855520),
+            Some(11855590),
+            false,
+        )
+        .await;
     }
 }
