@@ -107,7 +107,7 @@ pub async fn list_erc20_for_account(
     startblock: Option<i32>,
     endblock: Option<i32>,
     show_progress_bar: Option<bool>,
-    verbose: bool
+    verbose: bool,
 ) -> Tokens {
     let mut startblock_number = 0;
     if let Some(n) = startblock {
@@ -145,7 +145,7 @@ pub async fn list_erc20_for_account(
     match results {
         Value::Array(value) => {
             let mut tokens = Tokens::new();
-            let mut pb : Option<ProgressBar> = None;
+            let mut pb: Option<ProgressBar> = None;
             if progress_bar_enabled {
                 pb = Some(ProgressBar::new(value.len().try_into().unwrap()));
             }
