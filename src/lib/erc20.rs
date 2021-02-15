@@ -106,16 +106,24 @@ pub async fn list_erc20_for_account(
     ethplorer_api_key: &str,
     startblock: Option<i32>,
     endblock: Option<i32>,
-    verbose: bool,
+    show_progress_bar: Option<bool>,
+    verbose: bool
 ) -> Tokens {
     let mut startblock_number = 0;
     if let Some(n) = startblock {
         startblock_number = n;
     }
+
     let mut endblock_number = 999999999;
     if let Some(n) = endblock {
         endblock_number = n;
     }
+
+    let mut progress_bar_enabled = true;
+    if let Some(b) = show_progress_bar {
+        progress_bar_enabled = b;
+    }
+
     let url =
         format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock={}&endblock={}&sort=asc&apikey={}", account_address, startblock_number, endblock_number, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
@@ -137,10 +145,15 @@ pub async fn list_erc20_for_account(
     match results {
         Value::Array(value) => {
             let mut tokens = Tokens::new();
-            let pb = ProgressBar::new(value.len().try_into().unwrap());
+            let mut pb : Option<ProgressBar> = None;
+            if progress_bar_enabled {
+                pb = Some(ProgressBar::new(value.len().try_into().unwrap()));
+            }
 
             for entry in value {
-                pb.inc(1);
+                if let Some(ref p) = pb {
+                    p.inc(1);
+                }
                 io::stdout().flush().unwrap();
                 let token_symbol: String = entry.get("tokenSymbol").unwrap().to_string();
 
@@ -193,7 +206,9 @@ pub async fn list_erc20_for_account(
                     _ => continue,
                 }
             }
-            pb.finish_with_message("done");
+            if let Some(ref p) = pb {
+                p.finish_with_message("done")
+            }
             tokens
         }
         _ => panic!("Error on processing the list of ERC20 tokens"),
@@ -299,6 +314,7 @@ mod test {
             &test_ethplorer_api_key,
             Some(11855520),
             Some(11855590),
+            Some(false),
             false,
         )
         .await;
@@ -327,6 +343,7 @@ mod test {
             &test_ethplorer_api_key,
             Some(11855520),
             Some(11855590),
+            Some(false),
             false,
         )
         .await;
