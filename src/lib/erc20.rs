@@ -27,7 +27,7 @@ pub struct ListConfig {
     pub startblock: i32,
     pub endblock: i32,
     pub show_progress_bar: bool,
-    pub verbose: bool
+    pub verbose: bool,
 }
 
 impl<'a> TokenInfo {
@@ -55,7 +55,7 @@ impl<'a> ListConfig {
         startblock: Option<i32>,
         endblock: Option<i32>,
         show_progress_bar: bool,
-        verbose: bool
+        verbose: bool,
     ) -> ListConfig {
         let mut startblock_number = 0;
         if let Some(n) = startblock {
@@ -71,7 +71,7 @@ impl<'a> ListConfig {
             startblock: startblock_number,
             endblock: endblock_number,
             show_progress_bar,
-            verbose
+            verbose,
         }
     }
 }
@@ -138,7 +138,7 @@ pub async fn list_erc20_for_account(
     account_address: H160,
     etherscan_api_key: &str,
     ethplorer_api_key: &str,
-    list_config: ListConfig
+    list_config: ListConfig,
 ) -> Tokens {
     let url =
         format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock={}&endblock={}&sort=asc&apikey={}", account_address, list_config.startblock, list_config.endblock, etherscan_api_key);
@@ -324,12 +324,7 @@ mod test {
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
 
-        let list_config = ListConfig::new(
-            Some(11855520),
-            Some(11855590),
-            false,
-            false,
-        );
+        let list_config = ListConfig::new(Some(11855520), Some(11855590), false, false);
 
         let list_erc20 = list_erc20_for_account(
             test_account_address,
@@ -356,13 +351,8 @@ mod test {
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
-        
-        let list_config = ListConfig::new(
-            Some(11855520),
-            Some(11855590),
-            false,
-            false,
-        );
+
+        let list_config = ListConfig::new(Some(11855520), Some(11855590), false, false);
 
         list_erc20_for_account(
             test_account_address,
