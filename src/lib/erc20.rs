@@ -22,6 +22,14 @@ pub struct TokenInfo {
     pub coingecko_link: String,
 }
 
+#[derive(Debug)]
+pub struct ListConfig {
+    pub startblock: i32,
+    pub endblock: i32,
+    pub show_progress_bar: bool,
+    pub verbose: bool
+}
+
 impl<'a> TokenInfo {
     fn new(
         contract_address: &'a str,
@@ -38,6 +46,32 @@ impl<'a> TokenInfo {
             usd_balance: balance * usd_price,
             eth_balance: balance * eth_price,
             coingecko_link: coingecko_link.to_string(),
+        }
+    }
+}
+
+impl<'a> ListConfig {
+    pub fn new(
+        startblock: Option<i32>,
+        endblock: Option<i32>,
+        show_progress_bar: bool,
+        verbose: bool
+    ) -> ListConfig {
+        let mut startblock_number = 0;
+        if let Some(n) = startblock {
+            startblock_number = n;
+        }
+
+        let mut endblock_number = 999999999;
+        if let Some(n) = endblock {
+            endblock_number = n;
+        }
+
+        ListConfig {
+            startblock: startblock_number,
+            endblock: endblock_number,
+            show_progress_bar,
+            verbose
         }
     }
 }
@@ -104,28 +138,10 @@ pub async fn list_erc20_for_account(
     account_address: H160,
     etherscan_api_key: &str,
     ethplorer_api_key: &str,
-    startblock: Option<i32>,
-    endblock: Option<i32>,
-    show_progress_bar: Option<bool>,
-    verbose: bool,
+    list_config: ListConfig
 ) -> Tokens {
-    let mut startblock_number = 0;
-    if let Some(n) = startblock {
-        startblock_number = n;
-    }
-
-    let mut endblock_number = 999999999;
-    if let Some(n) = endblock {
-        endblock_number = n;
-    }
-
-    let mut progress_bar_enabled = true;
-    if let Some(b) = show_progress_bar {
-        progress_bar_enabled = b;
-    }
-
     let url =
-        format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock={}&endblock={}&sort=asc&apikey={}", account_address, startblock_number, endblock_number, etherscan_api_key);
+        format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock={}&endblock={}&sort=asc&apikey={}", account_address, list_config.startblock, list_config.endblock, etherscan_api_key);
     let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
     let json: Value = serde_json::from_str(&body).unwrap();
     let mix_selector = Some(r#""result"|{"tokenSymbol", "tokenName", "contractAddress"}"#);
@@ -146,7 +162,7 @@ pub async fn list_erc20_for_account(
         Value::Array(value) => {
             let mut tokens = Tokens::new();
             let mut pb: Option<ProgressBar> = None;
-            if progress_bar_enabled {
+            if list_config.show_progress_bar {
                 pb = Some(ProgressBar::new(value.len().try_into().unwrap()));
             }
 
@@ -164,7 +180,7 @@ pub async fn list_erc20_for_account(
 
                         let token_id: String = coingecko::get_token_id_from_contract_address(
                             contract_address,
-                            verbose,
+                            list_config.verbose,
                         )
                         .await;
 
@@ -177,14 +193,14 @@ pub async fn list_erc20_for_account(
                         .await;
 
                         let token_usd_price_future =
-                            coingecko::get_token_price(&token_id, "usd", verbose);
+                            coingecko::get_token_price(&token_id, "usd", list_config.verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
                         let token_eth_price_future =
-                            coingecko::get_token_price(&token_id, "eth", verbose);
+                            coingecko::get_token_price(&token_id, "eth", list_config.verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
@@ -308,14 +324,18 @@ mod test {
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
 
+        let list_config = ListConfig::new(
+            Some(11855520),
+            Some(11855590),
+            false,
+            false,
+        );
+
         let list_erc20 = list_erc20_for_account(
             test_account_address,
             &test_etherscan_api_key,
             &test_ethplorer_api_key,
-            Some(11855520),
-            Some(11855590),
-            Some(false),
-            false,
+            list_config,
         )
         .await;
 
@@ -336,15 +356,19 @@ mod test {
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
+        
+        let list_config = ListConfig::new(
+            Some(11855520),
+            Some(11855590),
+            false,
+            false,
+        );
 
         list_erc20_for_account(
             test_account_address,
             &test_etherscan_api_key,
             &test_ethplorer_api_key,
-            Some(11855520),
-            Some(11855590),
-            Some(false),
-            false,
+            list_config,
         )
         .await;
     }
