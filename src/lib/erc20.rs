@@ -138,6 +138,7 @@ pub async fn list_erc20_for_account(
     account_address: H160,
     etherscan_api_key: &str,
     ethplorer_api_key: &str,
+    db: Option<&sled::Db>,
     list_config: ListConfig,
 ) -> Tokens {
     let url =
@@ -161,9 +162,10 @@ pub async fn list_erc20_for_account(
     match results {
         Value::Array(value) => {
             let mut tokens = Tokens::new();
+            let tx_count : u64 = value.len().try_into().unwrap();
             let mut pb: Option<ProgressBar> = None;
             if list_config.show_progress_bar {
-                pb = Some(ProgressBar::new(value.len().try_into().unwrap()));
+                pb = Some(ProgressBar::new(tx_count));
             }
 
             for entry in value {
@@ -222,9 +224,19 @@ pub async fn list_erc20_for_account(
                     _ => continue,
                 }
             }
+
             if let Some(ref p) = pb {
                 p.finish_with_message("done")
             }
+
+            if let Some(db_ref) = db {
+                let result = db_ref.insert(account_address.as_bytes(), tx_count.to_string().as_bytes());
+
+                if list_config.verbose {
+                    println!("insert tx count into cache. Result: {:?}", result);
+                }
+            }
+
             tokens
         }
         _ => panic!("Error on processing the list of ERC20 tokens"),
@@ -330,6 +342,7 @@ mod test {
             test_account_address,
             &test_etherscan_api_key,
             &test_ethplorer_api_key,
+            None,
             list_config,
         )
         .await;
@@ -358,6 +371,7 @@ mod test {
             test_account_address,
             &test_etherscan_api_key,
             &test_ethplorer_api_key,
+            None,
             list_config,
         )
         .await;

@@ -55,6 +55,8 @@ async fn main() -> web3::Result<()> {
         .get::<String>("ethplorer")
         .unwrap_or_else(|_| panic!("ethplorer key is not set in Settings.toml, exit."));
 
+    let db: sled::Db = sled::open("portfolio-cli-db").unwrap();
+
     let endpoint = format!("https://mainnet.infura.io/v3/{}", infura_key);
     let transport = web3::transports::Http::new(&endpoint)?;
     let web3 = web3::Web3::new(transport);
@@ -102,7 +104,7 @@ async fn main() -> web3::Result<()> {
     let list_config = erc20::ListConfig::new(None, None, true, verbose);
 
     let list_erc20 =
-        erc20::list_erc20_for_account(address, &etherscan_key, &ethplorer_key, list_config).await;
+        erc20::list_erc20_for_account(address, &etherscan_key, &ethplorer_key, Some(&db), list_config).await;
 
     println!("Balance of ERC20 tokens:");
 
