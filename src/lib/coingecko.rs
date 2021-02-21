@@ -94,7 +94,10 @@ mod test {
         );
 
         let result = fetch(&url, false).await;
-        assert_eq!(result.to_string(), "{\"error\":\"Could not find coin with the given id\"}");
+        assert_eq!(
+            result.to_string(),
+            "{\"error\":\"Could not find coin with the given id\"}"
+        );
     }
 
     #[tokio::test]
