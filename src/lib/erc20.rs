@@ -162,7 +162,7 @@ pub async fn list_erc20_for_account(
     match results {
         Value::Array(value) => {
             let mut tokens = Tokens::new();
-            let tx_count : u64 = value.len().try_into().unwrap();
+            let tx_count: u64 = value.len().try_into().unwrap();
             let mut pb: Option<ProgressBar> = None;
             if list_config.show_progress_bar {
                 pb = Some(ProgressBar::new(tx_count));
@@ -230,7 +230,8 @@ pub async fn list_erc20_for_account(
             }
 
             if let Some(db_ref) = db {
-                let result = db_ref.insert(account_address.as_bytes(), tx_count.to_string().as_bytes());
+                let result =
+                    db_ref.insert(account_address.as_bytes(), tx_count.to_string().as_bytes());
 
                 if list_config.verbose {
                     println!("insert tx count into cache. Result: {:?}", result);

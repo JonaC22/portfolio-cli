@@ -103,8 +103,14 @@ async fn main() -> web3::Result<()> {
 
     let list_config = erc20::ListConfig::new(None, None, true, verbose);
 
-    let list_erc20 =
-        erc20::list_erc20_for_account(address, &etherscan_key, &ethplorer_key, Some(&db), list_config).await;
+    let list_erc20 = erc20::list_erc20_for_account(
+        address,
+        &etherscan_key,
+        &ethplorer_key,
+        Some(&db),
+        list_config,
+    )
+    .await;
 
     println!("Balance of ERC20 tokens:");
 
