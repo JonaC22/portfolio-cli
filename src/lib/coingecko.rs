@@ -70,6 +70,34 @@ mod test {
     use super::*;
 
     #[tokio::test]
+    async fn fetch_success() {
+        // YFI token address
+        let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
+
+        let url = format!(
+            "https://api.coingecko.com/api/v3/coins/ethereum/contract/{}",
+            erc20_contract_address
+        );
+
+        let result = fetch(&url, false).await;
+        assert_eq!(result.is_object(), true);
+    }
+
+    #[tokio::test]
+    async fn fetch_non_existent_token_fail() {
+        // non existent token address
+        let erc20_contract_address = "0x0121212121212121212121212212121212121212";
+
+        let url = format!(
+            "https://api.coingecko.com/api/v3/coins/ethereum/contract/{}",
+            erc20_contract_address
+        );
+
+        let result = fetch(&url, false).await;
+        assert_eq!(result.to_string(), "{\"error\":\"Could not find coin with the given id\"}");
+    }
+
+    #[tokio::test]
     async fn get_token_id_success() {
         // YFI token address
         let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
