@@ -182,7 +182,7 @@ pub async fn list_erc20_for_account(
                             contract_address,
                             list_config.verbose,
                         )
-                        .await;
+                        .await.unwrap();
 
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
@@ -206,8 +206,8 @@ pub async fn list_erc20_for_account(
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
-                        let usd_price = token_usd_price_future.await;
-                        let eth_price = token_eth_price_future.await;
+                        let usd_price = token_usd_price_future.await.unwrap();
+                        let eth_price = token_eth_price_future.await.unwrap();
 
                         let token_info: TokenInfo = TokenInfo::new(
                             contract_address,
