@@ -1,4 +1,4 @@
-use serde_json::{Value, Error};
+use serde_json::{Error, Value};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -14,7 +14,10 @@ pub async fn fetch(url: &String, verbose: bool) -> Result<Value, String> {
             Ok(json) => return Ok(json),
             _ => {
                 if retry > max_retries {
-                    return Err(format!("Could not fetch from coingecko: response body: {:?}", &body));
+                    return Err(format!(
+                        "Could not fetch from coingecko: response body: {:?}",
+                        &body
+                    ));
                 } else {
                     retry += 1;
                     if verbose {
@@ -30,7 +33,10 @@ pub async fn fetch(url: &String, verbose: bool) -> Result<Value, String> {
     }
 }
 
-pub async fn get_token_id_from_contract_address(contract_address: &str, verbose: bool) -> Result<String, String> {
+pub async fn get_token_id_from_contract_address(
+    contract_address: &str,
+    verbose: bool,
+) -> Result<String, String> {
     let url = format!(
         "https://api.coingecko.com/api/v3/coins/ethereum/contract/{}",
         contract_address
@@ -39,12 +45,20 @@ pub async fn get_token_id_from_contract_address(contract_address: &str, verbose:
 
     let mix_selector = Some(r#""id""#);
 
-    let value : Value = jql::walker(&json, mix_selector).unwrap_or_default();
+    let value: Value = jql::walker(&json, mix_selector).unwrap_or_default();
 
-    Ok(value.as_str().ok_or_else(|| "").unwrap_or_else(|_e| "").to_string())
+    Ok(value
+        .as_str()
+        .ok_or_else(|| "")
+        .unwrap_or_else(|_e| "")
+        .to_string())
 }
 
-pub async fn get_token_price(token_id: &str, versus_name: &str, verbose: bool) -> Result<f64, String> {
+pub async fn get_token_price(
+    token_id: &str,
+    versus_name: &str,
+    verbose: bool,
+) -> Result<f64, String> {
     let url = format!(
         "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies={}",
         token_id, versus_name
@@ -54,7 +68,7 @@ pub async fn get_token_price(token_id: &str, versus_name: &str, verbose: bool) -
     let selector = format!(r#""{}"."{}""#, token_id, versus_name);
     let mix_selector = Some(selector.as_str());
 
-    let value : Value = jql::walker(&json, mix_selector).unwrap_or_default();
+    let value: Value = jql::walker(&json, mix_selector).unwrap_or_default();
 
     Ok(value.as_f64().ok_or_else(|| 0.0).unwrap_or_else(|_e| 0.0))
 }
@@ -98,7 +112,9 @@ mod test {
     async fn get_token_id_success() {
         // YFI token address
         let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
-        let id = get_token_id_from_contract_address(erc20_contract_address, true).await.unwrap();
+        let id = get_token_id_from_contract_address(erc20_contract_address, true)
+            .await
+            .unwrap();
         assert_eq!(id, "yearn-finance");
     }
 
@@ -106,7 +122,9 @@ mod test {
     async fn get_token_id_fail() {
         // non existent token address
         let erc20_contract_address = "0x0121212121212121212121212212121212121212";
-        let id = get_token_id_from_contract_address(erc20_contract_address, true).await.unwrap();
+        let id = get_token_id_from_contract_address(erc20_contract_address, true)
+            .await
+            .unwrap();
         assert_eq!(id, "");
     }
 
@@ -121,8 +139,12 @@ mod test {
 
     #[tokio::test]
     async fn get_token_price_fail() {
-        let price = get_token_price("nonexistingtoken", "usd", true).await.unwrap();
-        let price_eth = get_token_price("nonexistingtoken", "eth", true).await.unwrap();
+        let price = get_token_price("nonexistingtoken", "usd", true)
+            .await
+            .unwrap();
+        let price_eth = get_token_price("nonexistingtoken", "eth", true)
+            .await
+            .unwrap();
         assert_eq!(price, 0.0);
         assert_eq!(price_eth, 0.0);
     }

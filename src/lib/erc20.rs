@@ -182,7 +182,8 @@ pub async fn list_erc20_for_account(
                             contract_address,
                             list_config.verbose,
                         )
-                        .await.unwrap();
+                        .await
+                        .unwrap();
 
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
