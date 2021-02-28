@@ -1,8 +1,8 @@
 use serde_json::{Error, Value};
-use std::thread::sleep;
-use std::time::Duration;
 use std::error;
 use std::io;
+use std::thread::sleep;
+use std::time::Duration;
 
 pub async fn fetch(url: &String, verbose: bool) -> Result<Value, Box<dyn error::Error>> {
     let mut retry: u32 = 0;
@@ -16,10 +16,10 @@ pub async fn fetch(url: &String, verbose: bool) -> Result<Value, Box<dyn error::
             Ok(json) => return Ok(json),
             _ => {
                 if retry > max_retries {
-                    return Err(Box::new(io::Error::new(io::ErrorKind::ConnectionRefused, format!(
-                        "Could not fetch from coingecko: response body: {:?}",
-                        &body
-                    ))));
+                    return Err(Box::new(io::Error::new(
+                        io::ErrorKind::ConnectionRefused,
+                        format!("Could not fetch from coingecko: response body: {:?}", &body),
+                    )));
                 } else {
                     retry += 1;
                     if verbose {
