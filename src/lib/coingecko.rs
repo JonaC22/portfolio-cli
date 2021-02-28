@@ -1,8 +1,10 @@
 use serde_json::{Error, Value};
 use std::thread::sleep;
 use std::time::Duration;
+use std::error;
+use std::io;
 
-pub async fn fetch(url: &String, verbose: bool) -> Result<Value, String> {
+pub async fn fetch(url: &String, verbose: bool) -> Result<Value, Box<dyn error::Error>> {
     let mut retry: u32 = 0;
     let max_retries: u32 = 5;
 
@@ -14,10 +16,10 @@ pub async fn fetch(url: &String, verbose: bool) -> Result<Value, String> {
             Ok(json) => return Ok(json),
             _ => {
                 if retry > max_retries {
-                    return Err(format!(
+                    return Err(Box::new(io::Error::new(io::ErrorKind::ConnectionRefused, format!(
                         "Could not fetch from coingecko: response body: {:?}",
                         &body
-                    ));
+                    ))));
                 } else {
                     retry += 1;
                     if verbose {
@@ -36,7 +38,7 @@ pub async fn fetch(url: &String, verbose: bool) -> Result<Value, String> {
 pub async fn get_token_id_from_contract_address(
     contract_address: &str,
     verbose: bool,
-) -> Result<String, String> {
+) -> Result<String, Box<dyn error::Error>> {
     let url = format!(
         "https://api.coingecko.com/api/v3/coins/ethereum/contract/{}",
         contract_address
@@ -58,7 +60,7 @@ pub async fn get_token_price(
     token_id: &str,
     versus_name: &str,
     verbose: bool,
-) -> Result<f64, String> {
+) -> Result<f64, Box<dyn error::Error>> {
     let url = format!(
         "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies={}",
         token_id, versus_name
