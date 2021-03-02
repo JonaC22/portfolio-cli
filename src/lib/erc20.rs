@@ -10,6 +10,7 @@ use std::io::{self, Write};
 use std::thread::sleep;
 use std::time::Duration;
 use web3::types::H160;
+use std::error;
 
 #[derive(Debug)]
 pub struct TokenInfo {
@@ -78,30 +79,28 @@ impl<'a> ListConfig {
 
 type Tokens = HashMap<String, Option<TokenInfo>>;
 
-pub async fn get_token_decimal(ethplorer_api_key: &str, contract_address: &str) -> u32 {
+pub async fn get_token_decimal(ethplorer_api_key: &str, contract_address: &str) -> Result<u32, Box<dyn error::Error>> {
     let url = format!(
         "https://api.ethplorer.io/getTokenInfo/{}?apiKey={}
     ",
         contract_address, ethplorer_api_key
     );
-    let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
-    let json: Value = serde_json::from_str(&body).unwrap();
+    let body = reqwest::get(&url).await?.text().await?;
+    let json: Value = serde_json::from_str(&body)?;
     let mix_selector = Some(r#""decimals""#);
 
-    let results = jql::walker(&json, mix_selector).unwrap_or_else(|_| {
-        panic!(
-            "Error on fetching decimals for token contract {}",
-            contract_address
-        )
-    });
+    let results = jql::walker(&json, mix_selector)?;
 
     match results {
-        Value::String(value) => value.parse::<u32>().unwrap(),
-        Value::Number(value) => value.to_string().parse::<u32>().unwrap(),
-        _ => panic!(
-            "Error on fetching decimals for token contract {}",
-            contract_address
-        ),
+        Value::String(value) => Ok(value.parse::<u32>()?),
+        Value::Number(value) => Ok(value.to_string().parse::<u32>()?),
+        _ => Err(Box::new(io::Error::new(
+            io::ErrorKind::ConnectionRefused,
+            format!(
+                "Error on fetching decimals for token contract {}",
+                contract_address
+            )
+        ))),
     }
 }
 
@@ -110,27 +109,33 @@ pub async fn get_erc20_balance_for_account(
     etherscan_api_key: &str,
     ethplorer_api_key: &str,
     contract_address: &str,
-) -> f64 {
+) -> Result<f64, Box<dyn error::Error>> {
     let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
-    let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
-    let json: Value = serde_json::from_str(&body).unwrap();
+    let body = reqwest::get(&url).await?.text().await?;
+    let json: Value = serde_json::from_str(&body)?;
     let mix_selector = Some(r#""result""#);
     let message_selector = Some(r#""message""#);
 
-    let message = jql::walker(&json, message_selector).unwrap();
+    let message = jql::walker(&json, message_selector)?;
     if let Value::String(status) = message {
         if &status != "OK" {
             panic!("Error on processing ERC20 balance for {}", contract_address)
         }
     }
 
-    let results = jql::walker(&json, mix_selector).unwrap();
+    let results = jql::walker(&json, mix_selector)?;
 
-    let decimal = get_token_decimal(ethplorer_api_key, contract_address).await;
+    let decimal = get_token_decimal(ethplorer_api_key, contract_address).await?;
 
     match results {
-        Value::String(value) => value.parse::<f64>().unwrap() / 10_u64.pow(decimal) as f64,
-        _ => panic!("Error on processing ERC20 balance for {}", contract_address),
+        Value::String(value) => Ok(value.parse::<f64>()? / 10_u64.pow(decimal) as f64),
+        _ => Err(Box::new(io::Error::new(
+            io::ErrorKind::ConnectionRefused,
+            format!(
+                "Error on processing ERC20 balance for {}",
+                contract_address
+            )
+            ))),
     }
 }
 
@@ -139,22 +144,25 @@ pub async fn list_erc20_for_account(
     etherscan_api_key: &str,
     ethplorer_api_key: &str,
     list_config: ListConfig,
-) -> Tokens {
+) -> Result<Tokens, Box<dyn error::Error>> {
     let url =
         format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock={}&endblock={}&sort=asc&apikey={}", account_address, list_config.startblock, list_config.endblock, etherscan_api_key);
-    let body = reqwest::get(&url).await.unwrap().text().await.unwrap();
-    let json: Value = serde_json::from_str(&body).unwrap();
+    let body = reqwest::get(&url).await?.text().await?;
+    let json: Value = serde_json::from_str(&body)?;
     let mix_selector = Some(r#""result"|{"tokenSymbol", "tokenName", "contractAddress"}"#);
 
     let message_selector = Some(r#""message""#);
 
-    let message = jql::walker(&json, message_selector).unwrap();
+    let message = jql::walker(&json, message_selector)?;
     if let Value::String(status) = message {
         if &status != "OK" {
-            panic!("Error on processing the list of ERC20 tokens")
+            return Err(Box::new(io::Error::new(
+                io::ErrorKind::ConnectionRefused,
+                "Error on processing the list of ERC20 tokens"
+            )));
         }
     }
-    let results = jql::walker(&json, mix_selector).unwrap();
+    let results = jql::walker(&json, mix_selector)?;
 
     let limiter = RateLimiter::direct(Quota::per_second(nonzero!(8u32))); // Allow 8 units per second
 
@@ -163,14 +171,14 @@ pub async fn list_erc20_for_account(
             let mut tokens = Tokens::new();
             let mut pb: Option<ProgressBar> = None;
             if list_config.show_progress_bar {
-                pb = Some(ProgressBar::new(value.len().try_into().unwrap()));
+                pb = Some(ProgressBar::new(value.len().try_into()?));
             }
 
             for entry in value {
                 if let Some(ref p) = pb {
                     p.inc(1);
                 }
-                io::stdout().flush().unwrap();
+                io::stdout().flush()?;
                 let token_symbol: String = entry.get("tokenSymbol").unwrap().to_string();
 
                 match tokens.get(&token_symbol) {
@@ -183,7 +191,7 @@ pub async fn list_erc20_for_account(
                             list_config.verbose,
                         )
                         .await
-                        .unwrap();
+                        ?;
 
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
@@ -191,7 +199,7 @@ pub async fn list_erc20_for_account(
                             ethplorer_api_key,
                             contract_address,
                         )
-                        .await;
+                        .await?;
 
                         let token_usd_price_future =
                             coingecko::get_token_price(&token_id, "usd", list_config.verbose);
@@ -207,8 +215,8 @@ pub async fn list_erc20_for_account(
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
-                        let usd_price = token_usd_price_future.await.unwrap();
-                        let eth_price = token_eth_price_future.await.unwrap();
+                        let usd_price = token_usd_price_future.await?;
+                        let eth_price = token_eth_price_future.await?;
 
                         let token_info: TokenInfo = TokenInfo::new(
                             contract_address,
@@ -226,7 +234,7 @@ pub async fn list_erc20_for_account(
             if let Some(ref p) = pb {
                 p.finish_with_message("done")
             }
-            tokens
+            Ok(tokens)
         }
         _ => panic!("Error on processing the list of ERC20 tokens"),
     }
@@ -247,13 +255,10 @@ mod test {
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
-        let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await;
+        let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await.unwrap();
         assert_eq!(decimal, 18);
     }
 
-    #[should_panic(
-        expected = "Error on fetching decimals for token contract 0x0121212121212121212121212212121212121212"
-    )]
     #[tokio::test]
     async fn get_token_decimal_fail() {
         // non existent token address
@@ -263,7 +268,8 @@ mod test {
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
-        get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await;
+        let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await.unwrap();
+        assert_ne!(decimal, 18);
     }
 
     #[tokio::test]
@@ -285,11 +291,10 @@ mod test {
             &test_ethplorer_api_key,
             test_contract_address,
         )
-        .await;
+        .await.unwrap();
         assert_ne!(balance, 0.0);
     }
 
-    #[should_panic(expected = "Error on processing ERC20 balance for 0x98b2dE885E916b598f65DeD2")]
     #[tokio::test]
     async fn get_erc20_balance_for_account_fail() {
         let test_account_address: H160 =
@@ -303,13 +308,14 @@ mod test {
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
-        get_erc20_balance_for_account(
+        let balance = get_erc20_balance_for_account(
             test_account_address,
             &test_etherscan_api_key,
             &test_ethplorer_api_key,
             test_contract_address,
         )
-        .await;
+        .await.unwrap();
+        assert_eq!(balance, 0.0);
     }
 
     #[tokio::test]
@@ -333,7 +339,7 @@ mod test {
             &test_ethplorer_api_key,
             list_config,
         )
-        .await;
+        .await.unwrap();
 
         assert_eq!(list_erc20.len(), 2);
     }
@@ -355,12 +361,14 @@ mod test {
 
         let list_config = ListConfig::new(Some(11855520), Some(11855590), false, false);
 
-        list_erc20_for_account(
+        let list_erc20 = list_erc20_for_account(
             test_account_address,
             &test_etherscan_api_key,
             &test_ethplorer_api_key,
             list_config,
         )
-        .await;
+        .await.unwrap();
+
+        assert_ne!(list_erc20.len(), 2);
     }
 }

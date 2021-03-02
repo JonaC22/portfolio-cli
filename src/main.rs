@@ -140,7 +140,7 @@ async fn main() -> web3::Result<()> {
         "https://coingecko.com/en/coins/ethereum".to_string()
     ]);
 
-    for (token_symbol, values) in &list_erc20 {
+    for (token_symbol, values) in &list_erc20.unwrap() {
         match values {
             Some(values) => {
                 let balance: f64 = values.balance;
