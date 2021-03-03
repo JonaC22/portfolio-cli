@@ -119,7 +119,11 @@ pub async fn get_erc20_balance_for_account(
     let message = jql::walker(&json, message_selector)?;
     if let Value::String(status) = message {
         if &status != "OK" {
-            panic!("Error on processing ERC20 balance for {}", contract_address)
+            return Err(Box::new(io::Error::new(
+                io::ErrorKind::ConnectionRefused,
+                format!("Error on processing ERC20 balance for {}",
+                contract_address)
+            )));
         }
     }
 
@@ -236,7 +240,10 @@ pub async fn list_erc20_for_account(
             }
             Ok(tokens)
         }
-        _ => panic!("Error on processing the list of ERC20 tokens"),
+        _ => Err(Box::new(io::Error::new(
+            io::ErrorKind::ConnectionRefused,
+            "Error on processing the list of ERC20 tokens"
+        ))),
     }
 }
 
@@ -268,8 +275,11 @@ mod test {
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
-        let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await.unwrap();
-        assert_ne!(decimal, 18);
+        let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await;
+
+        if let Result::Err(err) = decimal {
+            assert_eq!((*err).to_string(), "Node \"decimals\" not found on the parent element");
+        }
     }
 
     #[tokio::test]
@@ -314,8 +324,10 @@ mod test {
             &test_ethplorer_api_key,
             test_contract_address,
         )
-        .await.unwrap();
-        assert_eq!(balance, 0.0);
+        .await;
+        if let Result::Err(err) = balance {
+            assert_eq!((*err).to_string(), "Error on processing ERC20 balance for 0x98b2dE885E916b598f65DeD2");
+        }
     }
 
     #[tokio::test]
@@ -344,7 +356,6 @@ mod test {
         assert_eq!(list_erc20.len(), 2);
     }
 
-    #[should_panic(expected = "Error on processing the list of ERC20 tokens")]
     #[tokio::test]
     async fn list_erc20_for_account_fail() {
         let test_account_address: H160 = "0x0121212121212121212121212212121212121212"
@@ -367,8 +378,10 @@ mod test {
             &test_ethplorer_api_key,
             list_config,
         )
-        .await.unwrap();
+        .await;
 
-        assert_ne!(list_erc20.len(), 2);
+        if let Result::Err(err) = list_erc20 {
+            assert_eq!((*err).to_string(), "Error on processing the list of ERC20 tokens");
+        }
     }
 }
