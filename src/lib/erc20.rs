@@ -6,11 +6,11 @@ use nonzero_ext::*;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::convert::TryInto;
+use std::error;
 use std::io::{self, Write};
 use std::thread::sleep;
 use std::time::Duration;
 use web3::types::H160;
-use std::error;
 
 #[derive(Debug)]
 pub struct TokenInfo {
@@ -79,7 +79,10 @@ impl<'a> ListConfig {
 
 type Tokens = HashMap<String, Option<TokenInfo>>;
 
-pub async fn get_token_decimal(ethplorer_api_key: &str, contract_address: &str) -> Result<u32, Box<dyn error::Error>> {
+pub async fn get_token_decimal(
+    ethplorer_api_key: &str,
+    contract_address: &str,
+) -> Result<u32, Box<dyn error::Error>> {
     let url = format!(
         "https://api.ethplorer.io/getTokenInfo/{}?apiKey={}
     ",
@@ -99,7 +102,7 @@ pub async fn get_token_decimal(ethplorer_api_key: &str, contract_address: &str) 
             format!(
                 "Error on fetching decimals for token contract {}",
                 contract_address
-            )
+            ),
         ))),
     }
 }
@@ -121,8 +124,7 @@ pub async fn get_erc20_balance_for_account(
         if &status != "OK" {
             return Err(Box::new(io::Error::new(
                 io::ErrorKind::ConnectionRefused,
-                format!("Error on processing ERC20 balance for {}",
-                contract_address)
+                format!("Error on processing ERC20 balance for {}", contract_address),
             )));
         }
     }
@@ -135,11 +137,8 @@ pub async fn get_erc20_balance_for_account(
         Value::String(value) => Ok(value.parse::<f64>()? / 10_u64.pow(decimal) as f64),
         _ => Err(Box::new(io::Error::new(
             io::ErrorKind::ConnectionRefused,
-            format!(
-                "Error on processing ERC20 balance for {}",
-                contract_address
-            )
-            ))),
+            format!("Error on processing ERC20 balance for {}", contract_address),
+        ))),
     }
 }
 
@@ -162,7 +161,7 @@ pub async fn list_erc20_for_account(
         if &status != "OK" {
             return Err(Box::new(io::Error::new(
                 io::ErrorKind::ConnectionRefused,
-                "Error on processing the list of ERC20 tokens"
+                "Error on processing the list of ERC20 tokens",
             )));
         }
     }
@@ -194,8 +193,7 @@ pub async fn list_erc20_for_account(
                             contract_address,
                             list_config.verbose,
                         )
-                        .await
-                        ?;
+                        .await?;
 
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
@@ -242,7 +240,7 @@ pub async fn list_erc20_for_account(
         }
         _ => Err(Box::new(io::Error::new(
             io::ErrorKind::ConnectionRefused,
-            "Error on processing the list of ERC20 tokens"
+            "Error on processing the list of ERC20 tokens",
         ))),
     }
 }
@@ -262,7 +260,9 @@ mod test {
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
-        let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await.unwrap();
+        let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address)
+            .await
+            .unwrap();
         assert_eq!(decimal, 18);
     }
 
@@ -278,7 +278,10 @@ mod test {
         let decimal = get_token_decimal(&test_ethplorer_api_key, erc20_contract_address).await;
 
         if let Result::Err(err) = decimal {
-            assert_eq!((*err).to_string(), "Node \"decimals\" not found on the parent element");
+            assert_eq!(
+                (*err).to_string(),
+                "Node \"decimals\" not found on the parent element"
+            );
         }
     }
 
@@ -301,7 +304,8 @@ mod test {
             &test_ethplorer_api_key,
             test_contract_address,
         )
-        .await.unwrap();
+        .await
+        .unwrap();
         assert_ne!(balance, 0.0);
     }
 
@@ -326,7 +330,10 @@ mod test {
         )
         .await;
         if let Result::Err(err) = balance {
-            assert_eq!((*err).to_string(), "Error on processing ERC20 balance for 0x98b2dE885E916b598f65DeD2");
+            assert_eq!(
+                (*err).to_string(),
+                "Error on processing ERC20 balance for 0x98b2dE885E916b598f65DeD2"
+            );
         }
     }
 
@@ -351,7 +358,8 @@ mod test {
             &test_ethplorer_api_key,
             list_config,
         )
-        .await.unwrap();
+        .await
+        .unwrap();
 
         assert_eq!(list_erc20.len(), 2);
     }
@@ -381,7 +389,10 @@ mod test {
         .await;
 
         if let Result::Err(err) = list_erc20 {
-            assert_eq!((*err).to_string(), "Error on processing the list of ERC20 tokens");
+            assert_eq!(
+                (*err).to_string(),
+                "Error on processing the list of ERC20 tokens"
+            );
         }
     }
 }
