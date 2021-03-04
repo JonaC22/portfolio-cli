@@ -10,6 +10,7 @@ use prettytable::Table;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use std::cmp::Ordering::Equal;
+use std::error;
 
 fn random_char() -> char {
     thread_rng()
@@ -19,7 +20,7 @@ fn random_char() -> char {
 }
 
 #[tokio::main]
-async fn main() -> web3::Result<()> {
+async fn main() -> Result<(), Box<dyn error::Error>> {
     let app = App::new("portfolio-cli")
         .version("0.1.0")
         .author("Jonathan <JonaC22@users.noreply.github.com>")
@@ -43,7 +44,7 @@ async fn main() -> web3::Result<()> {
         .get_matches();
 
     let mut settings = config::Config::default();
-    settings.merge(config::File::with_name("Settings")).unwrap();
+    settings.merge(config::File::with_name("Settings"))?;
 
     let infura_key = settings
         .get::<String>("infura")
@@ -88,9 +89,7 @@ async fn main() -> web3::Result<()> {
     let balance = web3.eth().balance(address, None).await?.low_u64();
     let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
     let eth_balance_vs_usd = eth_balance
-        * coingecko::get_token_price("ethereum", "usd", verbose)
-            .await
-            .unwrap();
+        * coingecko::get_token_price("ethereum", "usd", verbose).await?;
 
     if verbose {
         println!(
@@ -104,7 +103,7 @@ async fn main() -> web3::Result<()> {
     let list_config = erc20::ListConfig::new(None, None, true, verbose);
 
     let list_erc20 =
-        erc20::list_erc20_for_account(address, &etherscan_key, &ethplorer_key, list_config).await;
+        erc20::list_erc20_for_account(address, &etherscan_key, &ethplorer_key, list_config).await?;
 
     println!("Balance of ERC20 tokens:");
 
@@ -140,7 +139,7 @@ async fn main() -> web3::Result<()> {
         "https://coingecko.com/en/coins/ethereum".to_string()
     ]);
 
-    for (token_symbol, values) in &list_erc20.unwrap() {
+    for (token_symbol, values) in &list_erc20 {
         match values {
             Some(values) => {
                 let balance: f64 = values.balance;
