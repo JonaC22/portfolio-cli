@@ -1,4 +1,4 @@
-use serde_json::{Error, Value};
+use serde_json::Value;
 use std::error;
 use std::io;
 use std::thread::sleep;
@@ -9,8 +9,8 @@ pub async fn fetch(url: &String, verbose: bool) -> Result<Value, Box<dyn error::
     let max_retries: u32 = 5;
 
     loop {
-        let body = reqwest::get(url).await.unwrap().text().await.unwrap();
-        let result: std::result::Result<Value, Error> = serde_json::from_str(&body);
+        let body = reqwest::get(url).await?.text().await?;
+        let result = serde_json::from_str(&body);
 
         match result {
             Ok(json) => return Ok(json),
@@ -47,7 +47,7 @@ pub async fn get_token_id_from_contract_address(
 
     let mix_selector = Some(r#""id""#);
 
-    let value: Value = jql::walker(&json, mix_selector).unwrap_or_default();
+    let value: Value = jql::walker(&json, mix_selector)?;
 
     Ok(value
         .as_str()
@@ -70,7 +70,7 @@ pub async fn get_token_price(
     let selector = format!(r#""{}"."{}""#, token_id, versus_name);
     let mix_selector = Some(selector.as_str());
 
-    let value: Value = jql::walker(&json, mix_selector).unwrap_or_default();
+    let value: Value = jql::walker(&json, mix_selector)?;
 
     Ok(value.as_f64().ok_or_else(|| 0.0).unwrap_or_else(|_e| 0.0))
 }
@@ -124,10 +124,14 @@ mod test {
     async fn get_token_id_fail() {
         // non existent token address
         let erc20_contract_address = "0x0121212121212121212121212212121212121212";
-        let id = get_token_id_from_contract_address(erc20_contract_address, true)
-            .await
-            .unwrap();
-        assert_eq!(id, "");
+        let result = get_token_id_from_contract_address(erc20_contract_address, true)
+            .await;
+        if let Result::Err(err) = result {
+            assert_eq!(
+                (*err).to_string(),
+                "Node \"id\" not found on the parent element"
+            );
+        }
     }
 
     #[tokio::test]
@@ -141,13 +145,13 @@ mod test {
 
     #[tokio::test]
     async fn get_token_price_fail() {
-        let price = get_token_price("nonexistingtoken", "usd", true)
-            .await
-            .unwrap();
-        let price_eth = get_token_price("nonexistingtoken", "eth", true)
-            .await
-            .unwrap();
-        assert_eq!(price, 0.0);
-        assert_eq!(price_eth, 0.0);
+        let result = get_token_price("nonexistingtoken", "usd", true)
+            .await;
+        if let Result::Err(err) = result {
+            assert_eq!(
+                (*err).to_string(),
+                "Node \"nonexistingtoken\" not found on the parent element"
+            );
+        }
     }
 }
