@@ -124,8 +124,7 @@ mod test {
     async fn get_token_id_fail() {
         // non existent token address
         let erc20_contract_address = "0x0121212121212121212121212212121212121212";
-        let result = get_token_id_from_contract_address(erc20_contract_address, true)
-            .await;
+        let result = get_token_id_from_contract_address(erc20_contract_address, true).await;
         if let Result::Err(err) = result {
             assert_eq!(
                 (*err).to_string(),
@@ -145,8 +144,7 @@ mod test {
 
     #[tokio::test]
     async fn get_token_price_fail() {
-        let result = get_token_price("nonexistingtoken", "usd", true)
-            .await;
+        let result = get_token_price("nonexistingtoken", "usd", true).await;
         if let Result::Err(err) = result {
             assert_eq!(
                 (*err).to_string(),
