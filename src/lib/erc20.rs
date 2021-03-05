@@ -182,13 +182,18 @@ pub async fn list_erc20_for_account(
                     p.inc(1);
                 }
                 io::stdout().flush()?;
-                let token_symbol: String = entry.get("tokenSymbol")
-                    .ok_or("tokenSymbol not present")?.to_string();
+                let token_symbol: String = entry
+                    .get("tokenSymbol")
+                    .ok_or("tokenSymbol not present")?
+                    .to_string();
 
                 match tokens.get(&token_symbol) {
                     None => {
-                        let contract_address: &str =
-                            entry.get("contractAddress").ok_or("contractAddress not present")?.as_str().unwrap();
+                        let contract_address: &str = entry
+                            .get("contractAddress")
+                            .ok_or("contractAddress not present")?
+                            .as_str()
+                            .unwrap();
 
                         let token_id: String = coingecko::get_token_id_from_contract_address(
                             contract_address,
