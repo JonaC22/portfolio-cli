@@ -46,15 +46,9 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
     let mut settings = config::Config::default();
     settings.merge(config::File::with_name("Settings"))?;
 
-    let infura_key = settings
-        .get::<String>("infura")
-        .unwrap_or_else(|_| panic!("infura key is not set in Settings.toml, exit."));
-    let etherscan_key = settings
-        .get::<String>("etherscan")
-        .unwrap_or_else(|_| panic!("etherscan key is not set in Settings.toml, exit."));
-    let ethplorer_key = settings
-        .get::<String>("ethplorer")
-        .unwrap_or_else(|_| panic!("ethplorer key is not set in Settings.toml, exit."));
+    let infura_key = settings.get::<String>("infura")?;
+    let etherscan_key = settings.get::<String>("etherscan")?;
+    let ethplorer_key = settings.get::<String>("ethplorer")?;
 
     let endpoint = format!("https://mainnet.infura.io/v3/{}", infura_key);
     let transport = web3::transports::Http::new(&endpoint)?;
