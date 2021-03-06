@@ -193,7 +193,7 @@ pub async fn list_erc20_for_account(
                             .get("contractAddress")
                             .ok_or("contractAddress not present")?
                             .as_str()
-                            .unwrap();
+                            .ok_or("contractAddress invalid")?;
 
                         let token_id: String = coingecko::get_token_id_from_contract_address(
                             contract_address,
