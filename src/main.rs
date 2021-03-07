@@ -62,7 +62,9 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         raw_address = stripped;
     }
 
-    let address = raw_address.parse::<web3::types::H160>().map_err(|err| format!("Error at specified address: {}. {:?}", raw_address, err))?;
+    let address = raw_address
+        .parse::<web3::types::H160>()
+        .map_err(|err| format!("Error at specified address: {}. {:?}", raw_address, err))?;
 
     if verbose {
         println!("Address: {}", address)
