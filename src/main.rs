@@ -56,25 +56,16 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
 
     let verbose: bool = app.is_present("verbose");
 
-    let address;
+    let mut raw_address = app.value_of("address").ok_or("No address specified")?;
 
-    match app.value_of("address") {
-        None => panic!("No address specified, exit."),
-        Some(r) => {
-            let mut raw_address = r;
-            if let Some(stripped) = r.strip_prefix("0x") {
-                raw_address = stripped;
-            }
-            match raw_address.parse::<web3::types::H160>() {
-                Ok(a) => {
-                    if verbose {
-                        println!("Address: {}", a)
-                    }
-                    address = a;
-                }
-                Err(_) => panic!("Error at specified address: {}", raw_address),
-            }
-        }
+    if let Some(stripped) = raw_address.strip_prefix("0x") {
+        raw_address = stripped;
+    }
+
+    let address = raw_address.parse::<web3::types::H160>().map_err(|err| format!("Error at specified address: {}. {:?}", raw_address, err))?;
+
+    if verbose {
+        println!("Address: {}", address)
     }
 
     if verbose {
