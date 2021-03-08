@@ -47,7 +47,7 @@ pub async fn get_token_id_from_contract_address(
 
     let mix_selector = Some(r#""id""#);
 
-    let value: Value = jql::walker(&json, mix_selector)?;
+    let value = jql::walker(&json, mix_selector)?;
 
     Ok(value
         .as_str()

@@ -195,11 +195,17 @@ pub async fn list_erc20_for_account(
                             .as_str()
                             .ok_or("contractAddress invalid")?;
 
-                        let token_id: String = coingecko::get_token_id_from_contract_address(
+                        let token_id_result = coingecko::get_token_id_from_contract_address(
                             contract_address,
                             list_config.verbose,
                         )
-                        .await?;
+                        .await;
+
+                        if let Result::Err(_err) = token_id_result {
+                            continue;
+                        }
+
+                        let token_id = token_id_result?;
 
                         let balance: f64 = get_erc20_balance_for_account(
                             account_address,
