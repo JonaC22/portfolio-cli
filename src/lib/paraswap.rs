@@ -51,9 +51,7 @@ mod test {
 
         let url = format!(
             "https://api.paraswap.io/v2/prices/?from={}&to={}&amount={}",
-            from_contract_address,
-            to_contract_address,
-            amount
+            from_contract_address, to_contract_address, amount
         );
 
         let result = fetch(&url, false).await;
@@ -72,9 +70,7 @@ mod test {
 
         let url = format!(
             "https://api.paraswap.io/v2/prices/?from={}&to={}&amount={}",
-            from_contract_address,
-            to_contract_address,
-            amount
+            from_contract_address, to_contract_address, amount
         );
 
         let result = fetch(&url, false).await;
