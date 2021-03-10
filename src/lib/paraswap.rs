@@ -35,6 +35,42 @@ pub async fn fetch(url: &String, verbose: bool) -> Result<Value, Box<dyn error::
     }
 }
 
+pub async fn get_token_price(
+    from_contract_address: &str,
+    versus_name: &str,
+    verbose: bool,
+) -> Result<f64, Box<dyn error::Error>> {
+
+    let to_contract_address;
+
+    match versus_name {
+        "eth" => to_contract_address = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "usd" => to_contract_address = "0xdac17f958d2ee523a2206206994597c13d831ec7", // USDT token address
+        _ => return Err(Box::new(io::Error::new(
+            io::ErrorKind::ConnectionRefused,
+            format!("Could not fetch token price versus {}", versus_name),
+        )))
+    }
+
+    let amount = "1000000000000";
+
+    let url = format!(
+        "https://api.paraswap.io/v2/prices/?from={}&to={}&amount={}",
+        from_contract_address,
+        to_contract_address,
+        amount
+    );
+    let json = fetch(&url, verbose).await?;
+
+    let mix_selector = Some(r#""priceRoute"."bestRoute"[0]."amount""#);
+
+    let value: Value = jql::walker(&json, mix_selector)?;
+
+    dbg!(&value);
+
+    Ok(value.as_f64().ok_or_else(|| 0.0).unwrap_or_else(|_e| 0.0))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -78,5 +114,27 @@ mod test {
             result.unwrap().to_string(),
             "{\"error\":\"Token not found\"}"
         );
+    }
+
+    #[tokio::test]
+    async fn get_token_price_success() {
+        // AAVE token address
+        let contract_address = "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9";
+        let price = get_token_price(contract_address, "usd", true).await.unwrap();
+        assert_ne!(price, 0.0);
+    }
+
+    #[tokio::test]
+    async fn get_token_price_fail() {
+        // non existent token address
+        let contract_address = "0x0121212121212121212121212212121212121212";
+
+        let result = get_token_price(contract_address, "usd", true).await;
+        if let Result::Err(err) = result {
+            assert_eq!(
+                (*err).to_string(),
+                "Node \"priceRoute\" not found on the parent element"
+            );
+        }
     }
 }
