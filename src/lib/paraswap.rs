@@ -65,7 +65,11 @@ pub async fn get_token_price(
 
     let value: Value = jql::walker(&json, mix_selector)?;
 
-    Ok(value.as_str().unwrap_or_else(|| "0.0").parse::<f64>().unwrap_or_else(|_e| 0.0))
+    Ok(value
+        .as_str()
+        .unwrap_or_else(|| "0.0")
+        .parse::<f64>()
+        .unwrap_or_else(|_e| 0.0))
 }
 
 #[cfg(test)]
