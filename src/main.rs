@@ -5,7 +5,7 @@ use lib::{coingecko, erc20};
 #[macro_use]
 extern crate prettytable;
 use clap::{App, Arg};
-use piechart::{Chart, Color, Data};
+use piechart::{Chart, Color, Data, Style};
 use prettytable::Table;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -103,7 +103,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
     data.push(Data {
         label: "ETH".into(),
         value: eth_balance_vs_usd as f32,
-        color: Some(Color::Fixed(rng.gen_range(0..255))),
+        color: Some(Style::new().fg(Color::Fixed(rng.gen_range(0..255)))),
         fill: random_char(),
     });
 
@@ -151,7 +151,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
                     data.push(Data {
                         label: token_symbol.into(),
                         value: usd_balance as f32,
-                        color: Some(Color::Fixed(rng.gen_range(0..255))),
+                        color: Some(Style::new().fg(Color::Fixed(rng.gen_range(0..255)))),
                         fill: random_char(),
                     });
                 }
