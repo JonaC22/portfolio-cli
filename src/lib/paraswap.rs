@@ -58,12 +58,14 @@ pub async fn get_token_price(
     let amount = "1000000000000";
 
     let url = format!(
-        "https://api.paraswap.io/v2/prices/?from={}&to={}&amount={}",
+        "https://apiv5.paraswap.io/prices/?srcToken={}&destToken={}&amount={}",
         from_contract_address, to_contract_address, amount
     );
     let json = fetch(&url, verbose).await?;
 
-    let mix_selector = Some(r#""priceRoute"."bestRoute"[0]."amount""#);
+    dbg!(&json);
+
+    let mix_selector = Some(r#""priceRoute"."destAmount""#);
 
     let value: Value = jql::walker(&json, mix_selector)?;
 
@@ -89,7 +91,7 @@ mod test {
         let amount = "1000000000000";
 
         let url = format!(
-            "https://api.paraswap.io/v2/prices/?from={}&to={}&amount={}",
+            "https://apiv5.paraswap.io/prices/?srcToken={}&destToken={}&amount={}",
             from_contract_address, to_contract_address, amount
         );
 
@@ -108,7 +110,7 @@ mod test {
         let amount = "1000000000000";
 
         let url = format!(
-            "https://api.paraswap.io/v2/prices/?from={}&to={}&amount={}",
+            "https://apiv5.paraswap.io/prices/?srcToken={}&destToken={}&amount={}",
             from_contract_address, to_contract_address, amount
         );
 
