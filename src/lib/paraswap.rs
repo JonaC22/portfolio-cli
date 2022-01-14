@@ -5,7 +5,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 #[allow(dead_code)]
-pub async fn fetch(url: &String, verbose: bool) -> Result<Value, Box<dyn error::Error>> {
+pub async fn fetch(url: &str, verbose: bool) -> Result<Value, Box<dyn error::Error>> {
     let mut retry: u32 = 0;
     let max_retries: u32 = 5;
 
@@ -96,7 +96,7 @@ mod test {
         );
 
         let result = fetch(&url, false).await;
-        assert_eq!(result.unwrap().is_object(), true);
+        assert!(result.unwrap().is_object());
     }
 
     #[tokio::test]

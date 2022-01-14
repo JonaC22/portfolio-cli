@@ -4,7 +4,7 @@ use std::io;
 use std::thread::sleep;
 use std::time::Duration;
 
-pub async fn fetch(url: &String, verbose: bool) -> Result<Value, Box<dyn error::Error>> {
+pub async fn fetch(url: &str, verbose: bool) -> Result<Value, Box<dyn error::Error>> {
     let mut retry: u32 = 0;
     let max_retries: u32 = 5;
 
@@ -50,9 +50,7 @@ pub async fn get_token_id_from_contract_address(
     let value = jql::walker(&json, mix_selector)?;
 
     Ok(value
-        .as_str()
-        .ok_or_else(|| "")
-        .unwrap_or_else(|_e| "")
+        .as_str().ok_or("").unwrap_or("")
         .to_string())
 }
 
@@ -72,7 +70,7 @@ pub async fn get_token_price(
 
     let value: Value = jql::walker(&json, mix_selector)?;
 
-    Ok(value.as_f64().ok_or_else(|| 0.0).unwrap_or_else(|_e| 0.0))
+    Ok(value.as_f64().ok_or(0.0).unwrap_or(0.0))
 }
 
 #[cfg(test)]
@@ -90,7 +88,7 @@ mod test {
         );
 
         let result = fetch(&url, false).await;
-        assert_eq!(result.unwrap().is_object(), true);
+        assert!(result.unwrap().is_object());
     }
 
     #[tokio::test]
