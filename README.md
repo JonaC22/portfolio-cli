@@ -3,6 +3,8 @@ portfolio-cli
 
 Track balance of ETH and ERC20 tokens easily from cli
 
+[![codecov](https://codecov.io/gh/JonaC22/portfolio-cli/branch/master/graph/badge.svg?token=LIJC61SRHC)](https://codecov.io/gh/JonaC22/portfolio-cli)
+
 ### Features
 
 - List ETH and ERC20 total balance in ETH / USD
