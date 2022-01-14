@@ -9,7 +9,7 @@ jobs:
   release:
     name: Release Packaging
     env:
-      PROJECT_NAME_UNDERSCORE: portfolio-cli
+      PROJECT_NAME_UNDERSCORE: portfolio_cli
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
