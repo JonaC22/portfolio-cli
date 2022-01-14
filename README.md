@@ -3,6 +3,7 @@ portfolio-cli
 
 Track balance of ETH and ERC20 tokens easily from cli
 
+[![Test with Code Coverage](https://github.com/JonaC22/portfolio-cli/actions/workflows/test.yml/badge.svg)](https://github.com/JonaC22/portfolio-cli/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/JonaC22/portfolio-cli/branch/master/graph/badge.svg?token=LIJC61SRHC)](https://codecov.io/gh/JonaC22/portfolio-cli)
 
 ### Features
