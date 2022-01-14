@@ -49,9 +49,7 @@ pub async fn get_token_id_from_contract_address(
 
     let value = jql::walker(&json, mix_selector)?;
 
-    Ok(value
-        .as_str().ok_or("").unwrap_or("")
-        .to_string())
+    Ok(value.as_str().ok_or("").unwrap_or("").to_string())
 }
 
 pub async fn get_token_price(
