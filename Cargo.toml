@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 web3 = "0.17.0"
-config = "0.11.0"
+config = "0.13.0"
 tokio = { version = "1.6.1", features = ["macros"] }
 reqwest = "0.11.3"
 jql = "3.0.0"
