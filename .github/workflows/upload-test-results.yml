@@ -35,7 +35,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           files: artifacts/test_results/results.xml
       - name: Upload to CodeCov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           # required for private repositories:
           # token: ${{ secrets.CODECOV_TOKEN }}
