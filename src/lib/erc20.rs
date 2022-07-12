@@ -267,8 +267,9 @@ mod test {
     async fn get_token_decimal_success() {
         // YFI token address
         let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
-        let mut settings = config::Config::default();
-        settings.merge(config::File::with_name("Settings")).unwrap();
+        let config_builder = config::Config::builder()
+            .add_source(config::File::new("Settings", config::FileFormat::Json));
+        let settings = config_builder.build().unwrap();
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
@@ -282,8 +283,9 @@ mod test {
     async fn get_token_decimal_fail() {
         // non existent token address
         let erc20_contract_address = "0x0121212121212121212121212212121212121212";
-        let mut settings = config::Config::default();
-        settings.merge(config::File::with_name("Settings")).unwrap();
+        let config_builder = config::Config::builder()
+            .add_source(config::File::new("Settings", config::FileFormat::Json));
+        let settings = config_builder.build().unwrap();
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
             .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
