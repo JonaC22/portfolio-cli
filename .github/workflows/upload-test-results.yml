@@ -33,7 +33,9 @@ jobs:
         with:
           check_name: Test Results
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          files: artifacts/test_results/results.xml
+          if: always()
+          with:
+            files: "artifacts/test-results/**/*.xml"
       - name: Upload to CodeCov
         uses: codecov/codecov-action@v3
         with:
