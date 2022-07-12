@@ -302,8 +302,9 @@ mod test {
         let test_account_address: H160 =
             "000000000000000000000000000000000000dead".parse().unwrap();
         let test_contract_address = "0x98b2dE885E916b598f65DeD2fDbb63187EAEf184";
-        let mut settings = config::Config::default();
-        settings.merge(config::File::with_name("Settings")).unwrap();
+        let config_builder = config::Config::builder()
+            .add_source(config::File::new("Settings", config::FileFormat::Json));
+        let settings = config_builder.build().unwrap();
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
             .unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
@@ -326,8 +327,9 @@ mod test {
         let test_account_address: H160 =
             "000000000000000000000000000000000000dead".parse().unwrap();
         let test_contract_address = "0x98b2dE885E916b598f65DeD2";
-        let mut settings = config::Config::default();
-        settings.merge(config::File::with_name("Settings")).unwrap();
+        let config_builder = config::Config::builder()
+            .add_source(config::File::new("Settings", config::FileFormat::Json));
+        let settings = config_builder.build().unwrap();
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
             .unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
@@ -353,8 +355,9 @@ mod test {
     async fn list_erc20_for_account_success() {
         let test_account_address: H160 =
             "000000000000000000000000000000000000dead".parse().unwrap();
-        let mut settings = config::Config::default();
-        settings.merge(config::File::with_name("Settings")).unwrap();
+        let config_builder = config::Config::builder()
+            .add_source(config::File::new("Settings", config::FileFormat::Json));
+        let settings = config_builder.build().unwrap();
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
             .unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
@@ -381,8 +384,9 @@ mod test {
         let test_account_address: H160 = "0x0121212121212121212121212212121212121212"
             .parse()
             .unwrap();
-        let mut settings = config::Config::default();
-        settings.merge(config::File::with_name("Settings")).unwrap();
+        let config_builder = config::Config::builder()
+            .add_source(config::File::new("Settings", config::FileFormat::Json));
+        let settings = config_builder.build().unwrap();
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
             .unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
