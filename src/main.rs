@@ -22,7 +22,7 @@ fn random_char() -> char {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn error::Error>> {
     let app = App::new("portfolio-cli")
-        .version("0.1.0")
+        .version("1.0.0")
         .author("Jonathan <JonaC22@users.noreply.github.com>")
         .about("Track balance of ETH and ERC20 tokens easily from cli")
         .arg(
@@ -44,7 +44,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         .get_matches();
 
     let config_builder = config::Config::builder()
-        .add_source(config::File::new("Settings", config::FileFormat::Json));
+        .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
     let settings = config_builder.build()?;
 
     let infura_key = settings.get::<String>("infura")?;
