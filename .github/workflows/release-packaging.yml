@@ -19,7 +19,7 @@ jobs:
           toolchain: stable
           override: true
       - name: create artifacts directory
-        run: mkdir -p target/release/${{ env.PROJECT_NAME_UNDERSCORE }}
+        run: mkdir -p target/release && touch target/release/${{ env.PROJECT_NAME_UNDERSCORE }}
       - name: Release Build
         run: cargo build --release
       - name: 'Upload Artifact'
