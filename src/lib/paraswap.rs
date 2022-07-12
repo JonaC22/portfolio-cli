@@ -65,7 +65,7 @@ pub async fn get_token_price(
 
     dbg!(&json);
 
-    let mix_selector = Some(r#""priceRoute"."destAmount""#);
+    let mix_selector = r#""priceRoute"."destAmount""#;
 
     let value: Value = jql::walker(&json, mix_selector)?;
 

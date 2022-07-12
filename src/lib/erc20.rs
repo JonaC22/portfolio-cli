@@ -90,7 +90,7 @@ pub async fn get_token_decimal(
     );
     let body = reqwest::get(&url).await?.text().await?;
     let json: Value = serde_json::from_str(&body)?;
-    let mix_selector = Some(r#""decimals""#);
+    let mix_selector = r#""decimals""#;
 
     let results = jql::walker(&json, mix_selector)?;
 
@@ -116,8 +116,8 @@ pub async fn get_erc20_balance_for_account(
     let url = format!("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress={}&address={:?}&tag=latest&apikey={}", contract_address, account_address, etherscan_api_key);
     let body = reqwest::get(&url).await?.text().await?;
     let json: Value = serde_json::from_str(&body)?;
-    let mix_selector = Some(r#""result""#);
-    let message_selector = Some(r#""message""#);
+    let mix_selector = r#""result""#;
+    let message_selector = r#""message""#;
 
     let message = jql::walker(&json, message_selector)?;
     if let Value::String(status) = message {
@@ -152,9 +152,9 @@ pub async fn list_erc20_for_account(
         format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock={}&endblock={}&sort=asc&apikey={}", account_address, list_config.startblock, list_config.endblock, etherscan_api_key);
     let body = reqwest::get(&url).await?.text().await?;
     let json: Value = serde_json::from_str(&body)?;
-    let mix_selector = Some(r#""result"|{"tokenSymbol", "tokenName", "contractAddress"}"#);
+    let mix_selector = r#""result"|{"tokenSymbol", "tokenName", "contractAddress"}"#;
 
-    let message_selector = Some(r#""message""#);
+    let message_selector = r#""message""#;
 
     let message = jql::walker(&json, message_selector)?;
     if let Value::String(status) = message {

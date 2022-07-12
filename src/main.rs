@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         .about("Track balance of ETH and ERC20 tokens easily from cli")
         .arg(
             Arg::with_name("address")
-                .short("a")
+                .short('a')
                 .long("address")
                 .takes_value(true)
                 .required(true)
@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         )
         .arg(
             Arg::with_name("verbose")
-                .short("v")
+                .short('v')
                 .long("verbose")
                 .takes_value(false)
                 .required(false)
@@ -43,8 +43,8 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         )
         .get_matches();
 
-    let mut settings = config::Config::default();
-    settings.merge(config::File::with_name("Settings"))?;
+    let config_builder = config::Config::builder().add_source(config::File::new("Settings", config::FileFormat::Json));
+    let settings = config_builder.build()?;
 
     let infura_key = settings.get::<String>("infura")?;
     let etherscan_key = settings.get::<String>("etherscan")?;

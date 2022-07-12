@@ -45,7 +45,7 @@ pub async fn get_token_id_from_contract_address(
     );
     let json = fetch(&url, verbose).await?;
 
-    let mix_selector = Some(r#""id""#);
+    let mix_selector = r#""id""#;
 
     let value = jql::walker(&json, mix_selector)?;
 
@@ -64,7 +64,7 @@ pub async fn get_token_price(
     let json = fetch(&url, verbose).await?;
 
     let selector = format!(r#""{}"."{}""#, token_id, versus_name);
-    let mix_selector = Some(selector.as_str());
+    let mix_selector = selector.as_str();
 
     let value: Value = jql::walker(&json, mix_selector)?;
 

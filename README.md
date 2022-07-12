@@ -14,7 +14,7 @@ Track balance of ETH and ERC20 tokens easily from cli
 
 ### Requirements
 
-You will need some libs installed in your OS (Tested on Ubuntu 20.04):
+You will need some libs installed in your OS (Tested on Ubuntu 22.04):
 
 - gcc
 - libc-dev

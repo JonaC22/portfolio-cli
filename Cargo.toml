@@ -1,23 +1,22 @@
 [package]
 name = "portfolio-cli"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Jonathan <JonaC22@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-web3 = "0.17.0"
-config = "0.11.0"
-tokio = { version = "1.6.1", features = ["macros"] }
-reqwest = "0.11.3"
-jql = "3.0.0"
-serde_json = "1.0.59"
-governor = "0.3.1"
+web3 = { git = "https://github.com/tomusdrw/rust-web3" }
+tokio = { version = "1.19.2", features = ["full"] }
+config = "0.13.1"
+reqwest = "0.11.11"
+jql = "4.0.6"
+serde_json = "1.0.82"
+governor = "0.4.2"
 nonzero_ext = "0.3.0"
 indicatif = "0.16.1"
 piechart = "1.0.0"
 rand = "0.8.0"
-clap = "2.33.3"
+clap = "3.2.8"
 prettytable-rs = "0.8"
-sled = "0.34.6"
