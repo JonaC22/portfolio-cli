@@ -51,7 +51,7 @@ impl<'a> TokenInfo {
     }
 }
 
-impl<'a> ListConfig {
+impl ListConfig {
     pub fn new(
         startblock: Option<i32>,
         endblock: Option<i32>,
