@@ -268,7 +268,7 @@ mod test {
         // YFI token address
         let erc20_contract_address = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
         let config_builder = config::Config::builder()
-            .add_source(config::File::new("Settings", config::FileFormat::Json));
+            .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
         let settings = config_builder.build().unwrap();
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
@@ -284,7 +284,7 @@ mod test {
         // non existent token address
         let erc20_contract_address = "0x0121212121212121212121212212121212121212";
         let config_builder = config::Config::builder()
-            .add_source(config::File::new("Settings", config::FileFormat::Json));
+            .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
         let settings = config_builder.build().unwrap();
         let test_ethplorer_api_key = settings
             .get::<String>("test_ethplorer")
@@ -305,7 +305,7 @@ mod test {
             "000000000000000000000000000000000000dead".parse().unwrap();
         let test_contract_address = "0x98b2dE885E916b598f65DeD2fDbb63187EAEf184";
         let config_builder = config::Config::builder()
-            .add_source(config::File::new("Settings", config::FileFormat::Json));
+            .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
         let settings = config_builder.build().unwrap();
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
@@ -330,7 +330,7 @@ mod test {
             "000000000000000000000000000000000000dead".parse().unwrap();
         let test_contract_address = "0x98b2dE885E916b598f65DeD2";
         let config_builder = config::Config::builder()
-            .add_source(config::File::new("Settings", config::FileFormat::Json));
+            .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
         let settings = config_builder.build().unwrap();
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
@@ -358,7 +358,7 @@ mod test {
         let test_account_address: H160 =
             "000000000000000000000000000000000000dead".parse().unwrap();
         let config_builder = config::Config::builder()
-            .add_source(config::File::new("Settings", config::FileFormat::Json));
+            .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
         let settings = config_builder.build().unwrap();
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
@@ -387,7 +387,7 @@ mod test {
             .parse()
             .unwrap();
         let config_builder = config::Config::builder()
-            .add_source(config::File::new("Settings", config::FileFormat::Json));
+            .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
         let settings = config_builder.build().unwrap();
         let test_etherscan_api_key = settings
             .get::<String>("test_etherscan")
