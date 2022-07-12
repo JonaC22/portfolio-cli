@@ -58,7 +58,7 @@ pub async fn get_token_price(
     let amount = "1000000000000";
 
     let url = format!(
-        "https://apiv5.paraswap.io/prices/?srcToken={}&destToken={}&amount={}",
+        "https://apiv5.paraswap.io/prices/?srcToken={}&destToken={}&amount={}&network=1",
         from_contract_address, to_contract_address, amount
     );
     let json = fetch(&url, verbose).await?;
@@ -110,7 +110,7 @@ mod test {
         let amount = "1000000000000";
 
         let url = format!(
-            "https://apiv5.paraswap.io/prices/?srcToken={}&destToken={}&amount={}",
+            "https://apiv5.paraswap.io/prices/?srcToken={}&destToken={}&amount={}&network=1",
             from_contract_address, to_contract_address, amount
         );
 
