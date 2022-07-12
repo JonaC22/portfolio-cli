@@ -30,12 +30,9 @@ jobs:
 
       - name: Upload test results
         uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
         with:
-          check_name: Test Results
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          if: always()
-          with:
-            junit_files: "artifacts/**/*.xml"
+          junit_files: "artifacts/**/*.xml"
       - name: Upload to CodeCov
         uses: codecov/codecov-action@v3
         with:
