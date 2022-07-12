@@ -43,7 +43,8 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         )
         .get_matches();
 
-    let config_builder = config::Config::builder().add_source(config::File::new("Settings", config::FileFormat::Json));
+    let config_builder = config::Config::builder()
+        .add_source(config::File::new("Settings", config::FileFormat::Json));
     let settings = config_builder.build()?;
 
     let infura_key = settings.get::<String>("infura")?;
