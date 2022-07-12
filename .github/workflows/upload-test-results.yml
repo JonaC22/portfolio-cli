@@ -37,7 +37,6 @@ jobs:
       - name: Upload to CodeCov
         uses: codecov/codecov-action@v3
         with:
-          # required for private repositories:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./artifacts/test_results/lcov.info
           fail_ci_if_error: true
