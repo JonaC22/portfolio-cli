@@ -9,7 +9,7 @@ jobs:
   release:
     name: Release Packaging
     env:
-      PROJECT_NAME_UNDERSCORE: portfolio_cli
+      PROJECT_NAME: "portfolio-cli"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,11 +19,11 @@ jobs:
           toolchain: stable
           override: true
       - name: create artifacts directory
-        run: mkdir -p target/release && touch target/release/${{ env.PROJECT_NAME_UNDERSCORE }}
+        run: mkdir -p target/release && touch target/release/${{ env.PROJECT_NAME }}
       - name: Release Build
         run: cargo build --release
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.PROJECT_NAME_UNDERSCORE }}
-          path: target/release/${{ env.PROJECT_NAME_UNDERSCORE }}
+          name: ${{ env.PROJECT_NAME }}
+          path: target/release/${{ env.PROJECT_NAME }}
