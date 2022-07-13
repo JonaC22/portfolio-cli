@@ -231,12 +231,12 @@ pub async fn list_erc20_for_account(
 
                         let usd_price = match token_usd_price_future.await {
                             Ok(v) => v,
-                            Err(_) => continue
+                            Err(_) => continue,
                         };
 
                         let eth_price = match token_eth_price_future.await {
                             Ok(v) => v,
-                            Err(_) => continue
+                            Err(_) => continue,
                         };
 
                         let token_info: TokenInfo = TokenInfo::new(
