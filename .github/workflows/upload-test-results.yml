@@ -32,7 +32,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          junit_files: "artifacts/**/*.xml"
+          junit_files: "artifacts/results.xml"
       - name: Upload to CodeCov
         uses: codecov/codecov-action@v3
         with:
