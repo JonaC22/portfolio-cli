@@ -1,23 +1,14 @@
 mod lib;
 
-use lib::{coingecko, erc20};
+use lib::{coingecko, erc20, random};
 
 #[macro_use]
 extern crate prettytable;
 use clap::{App, Arg};
-use piechart::{Chart, Color, Data, Style};
+use piechart::{Chart, Data, Style};
 use prettytable::Table;
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
 use std::cmp::Ordering::Equal;
 use std::error;
-
-fn random_char() -> char {
-    thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(1)
-        .collect::<Vec<u8>>()[0] as char
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn error::Error>> {
@@ -98,15 +89,12 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
     let mut total_usd_balance = eth_balance_vs_usd;
     let mut total_eth_balance = eth_balance;
 
-    let mut data = Vec::new();
-
-    let mut rng = rand::thread_rng();
-    data.push(Data {
+    let mut data = vec![Data {
         label: "ETH".into(),
         value: eth_balance_vs_usd as f32,
-        color: Some(Style::new().fg(Color::Fixed(rng.gen_range(0..255)))),
-        fill: random_char(),
-    });
+        color: Some(Style::new().fg(random::get_color())),
+        fill: random::get_char(),
+    }];
 
     let mut table = Table::new();
     table.add_row(row![
@@ -148,12 +136,11 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
                         coingecko_link.to_string()
                     ]);
 
-                    let mut rng = rand::thread_rng();
                     data.push(Data {
                         label: token_symbol.into(),
                         value: usd_balance as f32,
-                        color: Some(Style::new().fg(Color::Fixed(rng.gen_range(0..255)))),
-                        fill: random_char(),
+                        color: Some(Style::new().fg(random::get_color())),
+                        fill: random::get_char(),
                     });
                 }
             }
