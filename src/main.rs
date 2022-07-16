@@ -1,5 +1,6 @@
 mod lib;
 
+use config::Config;
 use lib::{coingecko, erc20, random};
 
 #[macro_use]
@@ -38,17 +39,27 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
     let settings = config_builder.build()?;
 
+    let verbose: bool = app.is_present("verbose");
+
+    let address = app.value_of("address").ok_or("No address specified")?;
+
+    scan_balances(address, settings, verbose).await?;
+
+    Ok(())
+}
+
+async fn scan_balances(
+    address: &str,
+    settings: Config,
+    verbose: bool,
+) -> Result<(), Box<dyn error::Error>> {
     let infura_key = settings.get::<String>("infura")?;
     let etherscan_key = settings.get::<String>("etherscan")?;
     let ethplorer_key = settings.get::<String>("ethplorer")?;
 
     let endpoint = format!("https://mainnet.infura.io/v3/{}", infura_key);
-    let transport = web3::transports::Http::new(&endpoint)?;
-    let web3 = web3::Web3::new(transport);
 
-    let verbose: bool = app.is_present("verbose");
-
-    let mut raw_address = app.value_of("address").ok_or("No address specified")?;
+    let mut raw_address = address;
 
     if let Some(stripped) = raw_address.strip_prefix("0x") {
         raw_address = stripped;
@@ -65,6 +76,10 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
     if verbose {
         println!("Calling balance...");
     }
+
+    let transport = web3::transports::Http::new(&endpoint)?;
+    let web3 = web3::Web3::new(transport);
+
     let balance = web3.eth().balance(address, None).await?.low_u64();
     let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
     let eth_balance_vs_usd =
