@@ -80,10 +80,7 @@ async fn scan_balances(
     let transport = web3::transports::Http::new(&endpoint)?;
     let web3 = web3::Web3::new(transport);
 
-    let balance = web3.eth().balance(address, None).await?.low_u64();
-    let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
-    let eth_balance_vs_usd =
-        eth_balance * coingecko::get_token_price("ethereum", "usd", verbose).await?;
+    let (eth_balance, eth_balance_vs_usd) = get_eth_balance(web3, address, verbose).await?;
 
     if verbose {
         println!(
@@ -184,3 +181,46 @@ async fn scan_balances(
 
     Ok(())
 }
+
+async fn get_eth_balance(web3: web3::Web3<web3::transports::Http>, address: web3::types::H160, verbose: bool) -> Result<(f64, f64), Box<dyn error::Error>> {
+    let balance = web3.eth().balance(address, None).await?.low_u64();
+    let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
+    let eth_balance_vs_usd =
+        eth_balance * coingecko::get_token_price("ethereum", "usd", verbose).await?;
+    Ok((eth_balance, eth_balance_vs_usd))
+}
+
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//     use config;
+//     use web3::types::H160;
+
+//     #[tokio::test]
+//     async fn get_eth_balance_for_account_success() {
+//         let test_account_address: H160 =
+//             "000000000000000000000000000000000000dead".parse().unwrap();
+
+//         let config_builder = config::Config::builder()
+//             .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
+//         let settings = config_builder.build().unwrap();
+//         let test_infura_key = settings
+//             .get::<String>("test_infura")
+//             .unwrap_or_else(|_| panic!("test infura key is not set in Settings.toml, exit."));
+
+//         let endpoint = format!("https://mainnet.infura.io/v3/{}", test_infura_key);
+//         let transport = web3::transports::Http::new(&endpoint)?;
+//         let web3 = web3::Web3::new(transport);
+
+//         let (eth_balance, eth_balance_vs_usd) = get_eth_balance(
+//             web3,
+//             test_account_address,
+//             false
+//         )
+//         .await
+//         .unwrap();
+//         assert_ne!(eth_balance, 0.0);
+//         assert_ne!(eth_balance_vs_usd, 0.0);
+//     }
+
+// }
