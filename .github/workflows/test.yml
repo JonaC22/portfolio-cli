@@ -41,7 +41,7 @@ jobs:
           TEST_INFURA_API_KEY: ${{ secrets.TEST_INFURA_API_KEY }}
           TEST_ETHERSCAN_API_KEY: ${{ secrets.TEST_ETHERSCAN_API_KEY }}
           TEST_ETHPLORER_API_KEY: ${{ secrets.TEST_ETHPLORER_API_KEY }}
-        run: echo "test_infura = \"$TEST_INFURA_API_KEY\"" > Settings.toml; test_etherscan = \"$TEST_ETHERSCAN_API_KEY\"" > Settings.toml; echo "test_ethplorer = \"$TEST_ETHPLORER_API_KEY\"" >> Settings.toml
+        run: echo "test_infura = \"$TEST_INFURA_API_KEY\"" > Settings.toml; echo "test_etherscan = \"$TEST_ETHERSCAN_API_KEY\"" >> Settings.toml; echo "test_ethplorer = \"$TEST_ETHPLORER_API_KEY\"" >> Settings.toml
       - name: Generate test result and coverage report
         run: |
           cargo install cargo2junit grcov;
