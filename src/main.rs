@@ -190,37 +190,37 @@ async fn get_eth_balance(web3: web3::Web3<web3::transports::Http>, address: web3
     Ok((eth_balance, eth_balance_vs_usd))
 }
 
-// #[cfg(test)]
-// mod test {
-//     use super::*;
-//     use config;
-//     use web3::types::H160;
+#[cfg(test)]
+mod test {
+    use super::*;
+    use config;
+    use web3::types::H160;
 
-//     #[tokio::test]
-//     async fn get_eth_balance_for_account_success() {
-//         let test_account_address: H160 =
-//             "000000000000000000000000000000000000dead".parse().unwrap();
+    #[tokio::test]
+    async fn get_eth_balance_for_account_success() {
+        let test_account_address: H160 =
+            "000000000000000000000000000000000000dead".parse().unwrap();
 
-//         let config_builder = config::Config::builder()
-//             .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
-//         let settings = config_builder.build().unwrap();
-//         let test_infura_key = settings
-//             .get::<String>("test_infura")
-//             .unwrap_or_else(|_| panic!("test infura key is not set in Settings.toml, exit."));
+        let config_builder = config::Config::builder()
+            .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
+        let settings = config_builder.build().unwrap();
+        let test_infura_key = settings
+            .get::<String>("test_infura")
+            .unwrap_or_else(|_| panic!("test infura key is not set in Settings.toml, exit."));
 
-//         let endpoint = format!("https://mainnet.infura.io/v3/{}", test_infura_key);
-//         let transport = web3::transports::Http::new(&endpoint)?;
-//         let web3 = web3::Web3::new(transport);
+        let endpoint = format!("https://mainnet.infura.io/v3/{}", test_infura_key);
+        let transport = web3::transports::Http::new(&endpoint).unwrap();
+        let web3 = web3::Web3::new(transport);
 
-//         let (eth_balance, eth_balance_vs_usd) = get_eth_balance(
-//             web3,
-//             test_account_address,
-//             false
-//         )
-//         .await
-//         .unwrap();
-//         assert_ne!(eth_balance, 0.0);
-//         assert_ne!(eth_balance_vs_usd, 0.0);
-//     }
+        let (eth_balance, eth_balance_vs_usd) = get_eth_balance(
+            web3,
+            test_account_address,
+            false
+        )
+        .await
+        .unwrap();
+        assert_ne!(eth_balance, 0.0);
+        assert_ne!(eth_balance_vs_usd, 0.0);
+    }
 
-// }
+}
