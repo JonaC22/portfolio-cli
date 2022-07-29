@@ -28,6 +28,7 @@ You will need some libs installed in your OS (Tested on Ubuntu 22.04):
 ```
 infura = <infura-api-key>
 etherscan = <etherscan-api-key>
+etherscan = <ethplorer-api-key>
 ```
 
 - Then run in the command line:
@@ -55,6 +56,7 @@ $ cargo run -h
 
 ```
 ...
+test_infura = <infura-api-key>
 test_etherscan = <etherscan-api-key>
 test_ethplorer = <ethplorer-api-key>
 ```
