@@ -182,7 +182,11 @@ async fn scan_balances(
     Ok(())
 }
 
-async fn get_eth_balance(web3: web3::Web3<web3::transports::Http>, address: web3::types::H160, verbose: bool) -> Result<(f64, f64), Box<dyn error::Error>> {
+async fn get_eth_balance(
+    web3: web3::Web3<web3::transports::Http>,
+    address: web3::types::H160,
+    verbose: bool,
+) -> Result<(f64, f64), Box<dyn error::Error>> {
     let balance = web3.eth().balance(address, None).await?.low_u64();
     let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
     let eth_balance_vs_usd =
@@ -212,15 +216,10 @@ mod test {
         let transport = web3::transports::Http::new(&endpoint).unwrap();
         let web3 = web3::Web3::new(transport);
 
-        let (eth_balance, eth_balance_vs_usd) = get_eth_balance(
-            web3,
-            test_account_address,
-            false
-        )
-        .await
-        .unwrap();
+        let (eth_balance, eth_balance_vs_usd) = get_eth_balance(web3, test_account_address, false)
+            .await
+            .unwrap();
         assert_ne!(eth_balance, 0.0);
         assert_ne!(eth_balance_vs_usd, 0.0);
     }
-
 }
