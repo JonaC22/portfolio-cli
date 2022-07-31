@@ -36,7 +36,6 @@ pub async fn fetch(url: &str, verbose: bool) -> Result<Value, Box<dyn error::Err
     }
 }
 
-#[allow(dead_code)]
 pub async fn get_token_price(
     from_contract_address: &str,
     versus_name: &str,
@@ -62,9 +61,6 @@ pub async fn get_token_price(
         from_contract_address, to_contract_address, amount
     );
     let json = fetch(&url, verbose).await?;
-
-    dbg!(&json);
-
     let mix_selector = r#""priceRoute"."destAmount""#;
 
     let value: Value = jql::walker(&json, mix_selector)?;
