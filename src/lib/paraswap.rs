@@ -36,6 +36,7 @@ pub async fn fetch(url: &str, verbose: bool) -> Result<Value, Box<dyn error::Err
     }
 }
 
+#[allow(dead_code)]
 pub async fn get_token_price(
     from_contract_address: &str,
     versus_name: &str,
