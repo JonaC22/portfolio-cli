@@ -98,9 +98,6 @@ async fn scan_balances(
 
     println!("Balance of ERC20 tokens:");
 
-    let mut total_usd_balance = eth_balance_vs_usd;
-    let mut total_eth_balance = eth_balance;
-
     let mut data = vec![Data {
         label: "ETH".into(),
         value: eth_balance_vs_usd as f32,
@@ -109,6 +106,24 @@ async fn scan_balances(
     }];
 
     let mut table = Table::new();
+
+    fill_table_with_eth(&mut table, eth_balance, eth_balance_vs_usd);
+    fill_table_with_erc20(&mut table, eth_balance, eth_balance_vs_usd, list_erc20, &mut data);
+
+    table.printstd();
+
+    data.sort_by(|a, b| b.value.partial_cmp(&a.value).unwrap_or(Equal));
+
+    Chart::new()
+        .radius(20)
+        .aspect_ratio(4)
+        .legend(true)
+        .draw(&data);
+
+    Ok(())
+}
+
+fn fill_table_with_eth(table: &mut Table, eth_balance: f64, eth_balance_vs_usd: f64) {
     table.add_row(row![
         "TOKEN",
         "CONTRACT ADDRESS",
@@ -117,7 +132,6 @@ async fn scan_balances(
         "TOTAL USD",
         "COINGECKO LINK"
     ]);
-
     table.add_row(row![
         "ETH",
         "",
@@ -126,7 +140,9 @@ async fn scan_balances(
         format!("{:.2} US$", eth_balance_vs_usd),
         "https://coingecko.com/en/coins/ethereum".to_string()
     ]);
+}
 
+fn fill_table_with_erc20(table: &mut Table, mut total_eth_balance: f64, mut total_usd_balance: f64, list_erc20: std::collections::HashMap<String, Option<erc20::TokenInfo>>, data: &mut Vec<Data>) {
     for (token_symbol, values) in &list_erc20 {
         match values {
             Some(values) => {
@@ -159,7 +175,6 @@ async fn scan_balances(
             None => (),
         }
     }
-
     table.add_row(row![
         "TOTAL",
         "",
@@ -168,18 +183,6 @@ async fn scan_balances(
         format!("{:.2} US$", total_usd_balance),
         ""
     ]);
-
-    table.printstd();
-
-    data.sort_by(|a, b| b.value.partial_cmp(&a.value).unwrap_or(Equal));
-
-    Chart::new()
-        .radius(20)
-        .aspect_ratio(4)
-        .legend(true)
-        .draw(&data);
-
-    Ok(())
 }
 
 async fn get_eth_balance(
