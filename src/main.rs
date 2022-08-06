@@ -237,4 +237,14 @@ mod test {
         assert_ne!(eth_balance, 0.0);
         assert_ne!(eth_balance_vs_usd, 0.0);
     }
+
+    #[tokio::test]
+    async fn fill_table_with_eth_success() {
+        let mut table = Table::new();
+        let eth_balance = 0.0;
+        let eth_balance_vs_usd = 0.0;
+
+        fill_table_with_eth(&mut table, eth_balance, eth_balance_vs_usd);
+        assert_eq!(table.len(), 2);
+    }
 }
