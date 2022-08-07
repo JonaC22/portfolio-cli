@@ -77,7 +77,7 @@ impl ListConfig {
     }
 }
 
-type Tokens = HashMap<String, Option<TokenInfo>>;
+pub type Tokens = HashMap<String, Option<TokenInfo>>;
 
 pub async fn get_token_decimal(
     ethplorer_api_key: &str,

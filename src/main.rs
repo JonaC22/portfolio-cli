@@ -152,7 +152,7 @@ fn fill_table_with_erc20(
     table: &mut Table,
     mut total_eth_balance: f64,
     mut total_usd_balance: f64,
-    list_erc20: std::collections::HashMap<String, Option<erc20::TokenInfo>>,
+    list_erc20: erc20::Tokens,
     data: &mut Vec<Data>,
 ) {
     for (token_symbol, values) in &list_erc20 {
@@ -245,6 +245,46 @@ mod test {
         let eth_balance_vs_usd = 0.0;
 
         fill_table_with_eth(&mut table, eth_balance, eth_balance_vs_usd);
+        assert_eq!(table.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn fill_table_with_erc20_success() {
+        let mut table = Table::new();
+        let eth_balance = 0.0;
+        let usd_balance = 0.0;
+
+        let test_account_address: H160 =
+            "000000000000000000000000000000000000dead".parse().unwrap();
+        let config_builder = config::Config::builder()
+            .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
+        let settings = config_builder.build().unwrap();
+        let test_etherscan_api_key = settings
+            .get::<String>("test_etherscan")
+            .unwrap_or_else(|_| panic!("test etherscan key is not set in Settings.toml, exit."));
+        let test_ethplorer_api_key = settings
+            .get::<String>("test_ethplorer")
+            .unwrap_or_else(|_| panic!("test ethplorer key is not set in Settings.toml, exit."));
+
+        let list_config = erc20::ListConfig::new(Some(11855520), Some(11855590), false, false);
+
+        let list_erc20 = erc20::list_erc20_for_account(
+            test_account_address,
+            &test_etherscan_api_key,
+            &test_ethplorer_api_key,
+            list_config,
+        )
+        .await
+        .unwrap();
+
+        let mut data = vec![Data {
+            label: "ETH".into(),
+            value: usd_balance as f32,
+            color: Some(Style::new().fg(random::get_color())),
+            fill: random::get_char(),
+        }];
+
+        fill_table_with_erc20(&mut table, eth_balance, usd_balance, list_erc20, &mut data);
         assert_eq!(table.len(), 2);
     }
 }
