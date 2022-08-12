@@ -70,3 +70,7 @@ $ cargo test
 ### Coverage
 
 For coverage tests, install and run [tarpaulin](https://github.com/xd009642/tarpaulin)
+
+```
+$ cargo tarpaulin
+```
