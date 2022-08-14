@@ -1,5 +1,5 @@
-use super::coingecko;
-
+use crate::coingecko::Coingecko;
+use crate::lib::price_provider::PriceProvider;
 use governor::{Quota, RateLimiter};
 use indicatif::ProgressBar;
 use nonzero_ext::*;
@@ -11,7 +11,6 @@ use std::io::{self, Write};
 use std::thread::sleep;
 use std::time::Duration;
 use web3::types::H160;
-
 #[derive(Debug)]
 pub struct TokenInfo {
     pub contract_address: String,
@@ -148,6 +147,7 @@ pub async fn list_erc20_for_account(
     ethplorer_api_key: &str,
     list_config: ListConfig,
 ) -> Result<Tokens, Box<dyn error::Error>> {
+    let price_provider = Coingecko;
     let url =
         format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock={}&endblock={}&sort=asc&apikey={}", account_address, list_config.startblock, list_config.endblock, etherscan_api_key);
     let body = reqwest::get(&url).await?.text().await?;
@@ -195,11 +195,12 @@ pub async fn list_erc20_for_account(
                             .as_str()
                             .ok_or("contractAddress invalid")?;
 
-                        let token_id_result = coingecko::get_token_id_from_contract_address(
-                            contract_address,
-                            list_config.verbose,
-                        )
-                        .await;
+                        let token_id_result = price_provider
+                            .get_token_id_from_contract_address(
+                                contract_address,
+                                list_config.verbose,
+                            )
+                            .await;
 
                         if let Result::Err(_err) = token_id_result {
                             continue;
@@ -216,14 +217,14 @@ pub async fn list_erc20_for_account(
                         .await?;
 
                         let token_usd_price_future =
-                            coingecko::get_token_price(&token_id, "usd", list_config.verbose);
+                            price_provider.get_token_price(&token_id, "usd", list_config.verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
                         let token_eth_price_future =
-                            coingecko::get_token_price(&token_id, "eth", list_config.verbose);
+                            price_provider.get_token_price(&token_id, "eth", list_config.verbose);
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),

@@ -21,3 +21,4 @@ rand = "0.8.0"
 clap = "3.2.8"
 prettytable-rs = "0.8"
 openssl = { version = "0.10.40", features = ["vendored"] }
+async-trait = "0.1.57"

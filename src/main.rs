@@ -1,7 +1,7 @@
 mod lib;
 
 use config::Config;
-use lib::{coingecko, erc20, random};
+use lib::{coingecko, erc20, price_provider::PriceProvider, random};
 
 #[macro_use]
 extern crate prettytable;
@@ -202,10 +202,13 @@ async fn get_eth_balance(
     address: web3::types::H160,
     verbose: bool,
 ) -> Result<(f64, f64), Box<dyn error::Error>> {
+    let price_provider = coingecko::Coingecko;
     let balance = web3.eth().balance(address, None).await?.low_u64();
     let eth_balance = balance as f64 / 10_u64.pow(18) as f64;
-    let eth_balance_vs_usd =
-        eth_balance * coingecko::get_token_price("ethereum", "usd", verbose).await?;
+    let eth_balance_vs_usd = eth_balance
+        * price_provider
+            .get_token_price("ethereum", "usd", verbose)
+            .await?;
     Ok((eth_balance, eth_balance_vs_usd))
 }
 
