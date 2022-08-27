@@ -82,7 +82,7 @@ impl price_provider::PriceProvider for Coingecko {
 
 #[cfg(test)]
 mod test {
-    use crate::coingecko::Coingecko;
+    use crate::lib::coingecko::Coingecko;
     use crate::lib::price_provider::PriceProvider;
 
     #[tokio::test]
