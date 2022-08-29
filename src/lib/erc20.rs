@@ -1,5 +1,6 @@
 use crate::coingecko::Coingecko;
 use crate::lib::price_provider::PriceProvider;
+use crate::paraswap::Paraswap;
 use governor::{Quota, RateLimiter};
 use indicatif::ProgressBar;
 use nonzero_ext::*;
@@ -11,6 +12,7 @@ use std::io::{self, Write};
 use std::thread::sleep;
 use std::time::Duration;
 use web3::types::H160;
+
 #[derive(Debug)]
 pub struct TokenInfo {
     pub contract_address: String,
@@ -147,7 +149,8 @@ pub async fn list_erc20_for_account(
     ethplorer_api_key: &str,
     list_config: ListConfig,
 ) -> Result<Tokens, Box<dyn error::Error>> {
-    let price_provider = Coingecko;
+    let price_providers: Vec<Box<dyn PriceProvider>> =
+        vec![Box::new(Coingecko), Box::new(Paraswap)];
     let url =
         format!("http://api.etherscan.io/api?module=account&action=tokentx&address={:?}&startblock={}&endblock={}&sort=asc&apikey={}", account_address, list_config.startblock, list_config.endblock, etherscan_api_key);
     let body = reqwest::get(&url).await?.text().await?;
@@ -195,16 +198,16 @@ pub async fn list_erc20_for_account(
                             .as_str()
                             .ok_or("contractAddress invalid")?;
 
-                        let token_id_result = price_provider
-                            .get_token_id_from_contract_address(
-                                contract_address,
-                                list_config.verbose,
-                            )
-                            .await;
-
-                        if let Result::Err(_err) = token_id_result {
-                            continue;
-                        }
+                        let token_id_result = match get_token_id_from_contract_address(
+                            &price_providers,
+                            contract_address,
+                            &list_config,
+                        )
+                        .await
+                        {
+                            Some(value) => value,
+                            None => continue,
+                        };
 
                         let token_id = token_id_result?;
 
@@ -216,15 +219,21 @@ pub async fn list_erc20_for_account(
                         )
                         .await?;
 
-                        let token_usd_price_future =
-                            price_provider.get_token_price(&token_id, "usd", list_config.verbose);
+                        let token_usd_price_future = price_providers[0].get_token_price(
+                            &token_id,
+                            "usd",
+                            list_config.verbose,
+                        );
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
                         }
 
-                        let token_eth_price_future =
-                            price_provider.get_token_price(&token_id, "eth", list_config.verbose);
+                        let token_eth_price_future = price_providers[0].get_token_price(
+                            &token_id,
+                            "eth",
+                            list_config.verbose,
+                        );
                         match limiter.check() {
                             Ok(()) => (),
                             _ => sleep(Duration::from_millis(2000)),
@@ -263,6 +272,24 @@ pub async fn list_erc20_for_account(
             "Error on processing the list of ERC20 tokens",
         ))),
     }
+}
+
+async fn get_token_id_from_contract_address(
+    price_providers: &Vec<Box<dyn PriceProvider>>,
+    contract_address: &str,
+    list_config: &ListConfig,
+) -> Option<Result<String, Box<dyn error::Error>>> {
+    for price_provider in price_providers {
+        let token_id_result = price_provider
+            .get_token_id_from_contract_address(contract_address, list_config.verbose)
+            .await;
+        if let Result::Err(_err) = token_id_result {
+            continue;
+        }
+        return Some(token_id_result);
+    }
+
+    None
 }
 
 #[cfg(test)]

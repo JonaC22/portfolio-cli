@@ -1,7 +1,7 @@
 mod lib;
 
 use config::Config;
-use lib::{coingecko, erc20, price_provider::PriceProvider, random};
+use lib::{coingecko, erc20, paraswap, price_provider::PriceProvider, random};
 
 #[macro_use]
 extern crate prettytable;
