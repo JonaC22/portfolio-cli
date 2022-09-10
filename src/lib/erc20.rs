@@ -219,35 +219,13 @@ pub async fn list_erc20_for_account(
                         )
                         .await?;
 
-                        let token_usd_price_future = price_providers[0].get_token_price(
-                            &token_id,
-                            "usd",
-                            list_config.verbose,
-                        );
-                        match limiter.check() {
-                            Ok(()) => (),
-                            _ => sleep(Duration::from_millis(2000)),
-                        }
-
-                        let token_eth_price_future = price_providers[0].get_token_price(
-                            &token_id,
-                            "eth",
-                            list_config.verbose,
-                        );
-                        match limiter.check() {
-                            Ok(()) => (),
-                            _ => sleep(Duration::from_millis(2000)),
-                        }
-
-                        let usd_price = match token_usd_price_future.await {
-                            Ok(v) => v,
-                            Err(_) => continue,
-                        };
-
-                        let eth_price = match token_eth_price_future.await {
-                            Ok(v) => v,
-                            Err(_) => continue,
-                        };
+                        let (usd_price, eth_price) =
+                            match fetch_prices(&price_providers, &token_id, &list_config, &limiter)
+                                .await
+                            {
+                                Some(value) => value,
+                                None => continue,
+                            };
 
                         let token_info: TokenInfo = TokenInfo::new(
                             contract_address,
@@ -272,6 +250,57 @@ pub async fn list_erc20_for_account(
             "Error on processing the list of ERC20 tokens",
         ))),
     }
+}
+
+async fn fetch_prices(
+    price_providers: &Vec<Box<dyn PriceProvider>>,
+    token_id: &String,
+    list_config: &ListConfig,
+    limiter: &RateLimiter<
+        governor::state::NotKeyed,
+        governor::state::InMemoryState,
+        governor::clock::QuantaClock,
+        governor::middleware::NoOpMiddleware<governor::clock::QuantaInstant>,
+    >,
+) -> Option<(f64, f64)> {
+    let usd_price = match fetch_price(price_providers, token_id, "usd", list_config, limiter).await
+    {
+        Ok(value) => value,
+        Err(value) => return value,
+    };
+
+    let eth_price = match fetch_price(price_providers, token_id, "eth", list_config, limiter).await
+    {
+        Ok(value) => value,
+        Err(value) => return value,
+    };
+
+    Some((usd_price, eth_price))
+}
+
+async fn fetch_price(
+    price_providers: &Vec<Box<dyn PriceProvider>>,
+    token_id: &String,
+    versus_name: &str,
+    list_config: &ListConfig,
+    limiter: &RateLimiter<
+        governor::state::NotKeyed,
+        governor::state::InMemoryState,
+        governor::clock::QuantaClock,
+        governor::middleware::NoOpMiddleware<governor::clock::QuantaInstant>,
+    >,
+) -> Result<f64, Option<(f64, f64)>> {
+    let token_price_future =
+        price_providers[0].get_token_price(token_id, versus_name, list_config.verbose);
+    match limiter.check() {
+        Ok(()) => (),
+        _ => sleep(Duration::from_millis(2000)),
+    }
+    let price = match token_price_future.await {
+        Ok(v) => v,
+        Err(_) => return Err(None),
+    };
+    Ok(price)
 }
 
 async fn get_token_id_from_contract_address(
