@@ -290,17 +290,20 @@ async fn fetch_price(
         governor::middleware::NoOpMiddleware<governor::clock::QuantaInstant>,
     >,
 ) -> Result<f64, Option<(f64, f64)>> {
-    let token_price_future =
-        price_providers[0].get_token_price(token_id, versus_name, list_config.verbose);
-    match limiter.check() {
-        Ok(()) => (),
-        _ => sleep(Duration::from_millis(2000)),
-    }
-    let price = match token_price_future.await {
-        Ok(v) => v,
-        Err(_) => return Err(None),
+    for price_provider in price_providers {
+        let token_price_future =
+            price_provider.get_token_price(token_id, versus_name, list_config.verbose);
+        match limiter.check() {
+            Ok(()) => (),
+            _ => sleep(Duration::from_millis(2000)),
+        };
+
+        if let Ok(v) = token_price_future.await {
+            return Ok(v);
+        }
     };
-    Ok(price)
+
+    Err(None)
 }
 
 async fn get_token_id_from_contract_address(
