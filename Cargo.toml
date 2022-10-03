@@ -18,7 +18,7 @@ nonzero_ext = "0.3.0"
 indicatif = "0.17.0"
 piechart = "1.0.0"
 rand = "0.8.0"
-clap = "3.2.8"
+clap = "4.0.8"
 prettytable-rs = "0.9"
 openssl = { version = "0.10.40", features = ["vendored"] }
 async-trait = "0.1.57"
