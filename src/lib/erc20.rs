@@ -301,7 +301,7 @@ async fn fetch_price(
         if let Ok(v) = token_price_future.await {
             return Ok(v);
         }
-    };
+    }
 
     Err(None)
 }
