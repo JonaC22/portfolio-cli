@@ -14,10 +14,10 @@ use std::error;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-   #[arg(short, long)]
-   address: String,
-   #[arg(short, long, default_value_t = false)]
-   verbose: bool
+    #[arg(short, long)]
+    address: String,
+    #[arg(short, long, default_value_t = false)]
+    verbose: bool,
 }
 
 #[tokio::main]
