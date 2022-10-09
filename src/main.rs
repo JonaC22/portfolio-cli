@@ -5,43 +5,35 @@ use lib::{coingecko, erc20, paraswap, price_provider::PriceProvider, random};
 
 #[macro_use]
 extern crate prettytable;
-use clap::{App, Arg};
+use clap::Parser;
 use piechart::{Chart, Data, Style};
 use prettytable::Table;
 use std::cmp::Ordering::Equal;
 use std::error;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+   /// Name of the person to greet
+   #[arg(short, long)]
+   address: String,
+
+   /// Number of times to greet
+   #[arg(short, long, default_value_t = false)]
+   verbose: bool
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn error::Error>> {
-    let app = App::new("portfolio-cli")
-        .version("1.0.0")
-        .author("Jonathan <JonaC22@users.noreply.github.com>")
-        .about("Track balance of ETH and ERC20 tokens easily from cli")
-        .arg(
-            Arg::with_name("address")
-                .short('a')
-                .long("address")
-                .takes_value(true)
-                .required(true)
-                .help("ETH address"),
-        )
-        .arg(
-            Arg::with_name("verbose")
-                .short('v')
-                .long("verbose")
-                .takes_value(false)
-                .required(false)
-                .help("Verbose mode"),
-        )
-        .get_matches();
+    let args = Args::parse();
 
     let config_builder = config::Config::builder()
         .add_source(config::File::new("Settings.toml", config::FileFormat::Toml));
     let settings = config_builder.build()?;
 
-    let verbose: bool = app.is_present("verbose");
+    let verbose: bool = args.verbose;
 
-    let address = app.value_of("address").ok_or("No address specified")?;
+    let address = args.address;
 
     scan_balances(address, settings, verbose).await?;
 
@@ -49,7 +41,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
 }
 
 async fn scan_balances(
-    address: &str,
+    address: String,
     settings: Config,
     verbose: bool,
 ) -> Result<(), Box<dyn error::Error>> {
@@ -62,7 +54,7 @@ async fn scan_balances(
     let mut raw_address = address;
 
     if let Some(stripped) = raw_address.strip_prefix("0x") {
-        raw_address = stripped;
+        raw_address = stripped.to_owned();
     }
 
     let address = raw_address
